@@ -12,7 +12,8 @@ type Choice = {
 type Question = {
   questionId: number;
   questionText: string;
-  selectedChoiceId: number | null;
+  questionImage: string | null;
+  selectedChoiceId: number | null ;
   isCorrect: boolean;
   choices: Choice[];
 };
@@ -37,7 +38,7 @@ export default function ExamReviewModal({
   onClose,
 }: Props) {
   useDisableBodyScroll(data !== null);
-
+  //console.log("ExamReviewModal data:", data);
   if (!data) return null;
 
   const getChoiceClass = (choice: Choice, selectedId: number | null) => {
@@ -95,12 +96,24 @@ export default function ExamReviewModal({
                   key={q.questionId}
                   className="bg-white border border-slate-200 rounded-xl p-6 space-y-6 shadow-sm"
                 >
-
                   {/* QUESTION */}
                   <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <div className="min-w-0 flex-1 text-lg font-semibold text-slate-900">
+                  <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center gap-4">
+                  <div className="w-full text-lg font-semibold text-slate-900">
                       {q.questionText}
-                    </div>
+                  </div>
+                  {q.questionImage && (
+                      <div className="flex justify-center w-full">
+                        <img
+                          src={q.questionImage}
+                          alt="Question"
+                          className="max-w-full h-auto rounded-lg border border-slate-300"
+                        />
+                      </div>
+                  )}
+                  </div>
+                  </div>
                     {q.selectedChoiceId == null ? (
                       <span
                         className="shrink-0 text-xs font-medium text-amber-700"
