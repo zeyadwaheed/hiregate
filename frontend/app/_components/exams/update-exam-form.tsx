@@ -9,6 +9,7 @@ import ExamQuestionPicker from "@/app/_components/exams/exam-question-picker";
 import { updateExam } from "@/app/_services/exam-service";
 import type { Exam } from "@/app/_lib/exams/exam.types";
 import type { ExamFormState } from "@/app/_lib/exams/exam-form.types";
+import { useTranslations } from "next-intl";
 
 type ExamFormProps = {
   exam: Exam;
@@ -24,6 +25,7 @@ function toDateTimeLocalValue(value?: string) {
 
 export default function UpdateExamForm({ exam }: ExamFormProps) {
   const router = useRouter();
+  const t = useTranslations("Exams");
   const initialQuestionIds = useMemo(() => exam.questionIds ?? [], [exam.questionIds]);
 
   const [formState, setFormState] = useState<ExamFormState>({
@@ -56,7 +58,7 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
       router.push(`/exams/${savedExam.id}?success=updated`);
       router.refresh();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to update exam");
+      setErrorMessage(error instanceof Error ? error.message : t("failed-update"));
     } finally {
       setIsSubmitting(false);
     }
@@ -68,20 +70,20 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="positionTitle">
-              Position title
+              {t("position-title")}
             </label>
             <Input
               id="positionTitle"
               value={formState.positionTitle}
               onChange={(e) => setFormState((current) => ({ ...current, positionTitle: e.target.value }))}
-              placeholder="Frontend Developer"
+              placeholder={t("position-title-placeholder")}
               required
             />
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="durationMinutes">
-              Duration in minutes
+              {t("duration-minutes")}
             </label>
             <Input
               id="durationMinutes"
@@ -89,14 +91,14 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
               min={1}
               value={formState.durationMinutes}
               onChange={(e) => setFormState((current) => ({ ...current, durationMinutes: e.target.value }))}
-              placeholder="60"
+              placeholder={t("duration-placeholder")}
             />
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="windowStartTime">
-                Window start
+                {t("window-start")}
               </label>
               <Input
                 id="windowStartTime"
@@ -107,7 +109,7 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="windowEndTime">
-                Window end
+                {t("window-end")}
               </label>
               <Input
                 id="windowEndTime"
@@ -119,7 +121,7 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Questions</label>
+            <label className="mb-2 block text-sm font-medium text-slate-700">{t("questions")}</label>
             <ExamQuestionPicker
               selectedQuestionIds={selectedQuestionIds}
               onChange={setSelectedQuestionIds}
@@ -134,10 +136,10 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
 
           <div className="flex gap-3">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+              {isSubmitting ? t("saving") : t("save-changes")}
             </Button>
             <Button as="link" href={`/exams/${exam.id}`} variant="secondary">
-              Cancel
+              {t("cancel")}
             </Button>
           </div>
         </form>

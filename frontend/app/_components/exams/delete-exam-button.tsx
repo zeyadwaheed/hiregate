@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/app/_components/ui/button";
 import { deleteExam } from "@/app/_services/exam-service";
 import { DeleteConfirmationModal } from "../question-bank/delete-confirmation-modal";
+import { useTranslations } from "next-intl";
 
 type DeleteExamButtonProps = {
   examId: number;
@@ -21,6 +22,7 @@ export default function DeleteExamButton({
   className = "",
   onDeleted, // add this
 }: DeleteExamButtonProps) {
+  const t = useTranslations("Exams");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -52,7 +54,7 @@ export default function DeleteExamButton({
         router.replace(buildSuccessUrl(), { scroll: false });
       }
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to delete exam");
+      setErrorMessage(error instanceof Error ? error.message : t("failed-delete"));
     } finally {
       setIsDeleting(false);
     }
@@ -66,7 +68,7 @@ export default function DeleteExamButton({
         onClick={() => setIsModalOpen(true)}
         disabled={isDeleting}
       >
-        Delete
+        {t("delete")}
       </Button>
 
       {errorMessage ? (
@@ -76,10 +78,10 @@ export default function DeleteExamButton({
       <DeleteConfirmationModal
         isOpen={isModalOpen}
         loading={isDeleting}
-        title="Delete Exam"
-        description="Are you sure you want to delete this exam? This action cannot be undone."
+        title={t("delete-exam")}
+        description={t("delete-confirmation")}
         itemLabel={examTitle}
-        confirmLabel="Delete Exam"
+        confirmLabel={t("delete-exam")}
         onCancel={() => setIsModalOpen(false)}
         onConfirm={handleConfirm}
       />

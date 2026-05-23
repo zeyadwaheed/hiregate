@@ -24,8 +24,8 @@ namespace HireGate.Service.Validators
             {
                 RuleFor(x => x.QuestionImage)
                     .NotEmpty().WithMessage("Question image cannot be empty")
-                    .Must(img => Uri.TryCreate(img, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                    .WithMessage("Question image must be a valid URL");
+                    .Must(QuestionImageValidation.IsValid)
+                    .WithMessage("Question image must be a valid URL or app-relative path");
             });
 
             When(x => x.Choices != null, () =>

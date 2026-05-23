@@ -131,6 +131,8 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseCors("AllowAll");
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -153,4 +155,3 @@ app.MapAuthEndpoints();
 app.MapAdminEndpoints();
 
 app.Run();
-

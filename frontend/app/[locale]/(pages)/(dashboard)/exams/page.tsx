@@ -7,8 +7,10 @@ import ExamCard from "@/app/_components/exams/exam-card";
 import { getExamsPage } from "@/app/_services/exam-service";
 import { PaginationControls } from "@/app/_components/pagination-controls";
 import type { ExamSummary } from "@/app/_lib/exams/exam.types";
+import { useTranslations } from "next-intl";
 
 export default function ExamsPage() {
+  const t = useTranslations("Exams");
   const [exams, setExams] = useState<ExamSummary[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -21,11 +23,22 @@ export default function ExamsPage() {
       setErrorMessage(null);
       try {
         const result = await getExamsPage(currentPage);
+        
+      // If current page became empty after deletion
+      // and there is a previous page, go back
+      if (
+        result.data.length === 0 &&
+        currentPage > 1
+          )
+          {
+        setCurrentPage((prev) => prev - 1);
+        return;
+          }
         setExams(result.data);
         setTotalPages(result.totalPages);
       } catch (error) {
         setErrorMessage(
-          error instanceof Error ? error.message : "Unable to load exams right now."
+          error instanceof Error ? error.message : t("failed-load-exams")
         );
       } finally {
         setLoading(false);
@@ -38,8 +51,8 @@ export default function ExamsPage() {
   return (
     <section>
       <Header
-        title="Exams Management"
-        description="Create and Manage Exams for your candidates"
+        title={t("exams-management")}
+        description={t("exams-management-desc")}
         action={<CreateExamAction />}
       />
 
@@ -51,12 +64,12 @@ export default function ExamsPage() {
 
       {!errorMessage && !loading && exams.length === 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-          No exams found yet.
+          {t("no-exams")}
         </div>
       ) : null}
 
       {loading ? (
-        <div className="text-sm text-slate-500 py-8 text-center">Loading exams…</div>
+        <div className="text-sm text-slate-500 py-8 text-center">{t("loading-exams")}</div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {exams.map((exam) => (

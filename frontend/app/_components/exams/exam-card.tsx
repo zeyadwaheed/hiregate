@@ -6,6 +6,7 @@ import DeleteExamButton from "@/app/_components/exams/delete-exam-button";
 import { formatExamWindowTime } from "@/app/_lib/utils";
 import type { ExamSummary } from "@/app/_lib/exams/exam.types";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 type ExamCardProps = {
   exam: ExamSummary;
@@ -14,6 +15,7 @@ type ExamCardProps = {
 
 export default function ExamCard({ exam, onDeleted }: ExamCardProps) {
   const router = useRouter();
+  const t = useTranslations("Exams");
   const windowStartTime = formatExamWindowTime(exam.windowStartTime);
   const windowEndTime = formatExamWindowTime(exam.windowEndTime);
 
@@ -29,15 +31,15 @@ export default function ExamCard({ exam, onDeleted }: ExamCardProps) {
         </div>
 
         <div className="mb-4 space-y-3 text-sm text-slate-600 transition-colors duration-300 group-hover:text-slate-700">
-          <p>Duration: {exam.durationMinutes} minutes</p>
-          <p>Questions: {exam.questionCount}</p>
-          <p><strong>Start Time:</strong> {windowStartTime}</p>
-          <p><strong>End Time:</strong> {windowEndTime}</p>
+          <p>{t("duration")}: {exam.durationMinutes} {t("minutes")}</p>
+          <p>{t("questions")}: {exam.questionCount}</p>
+          <p><strong>{t("start-time")}:</strong> {windowStartTime}</p>
+          <p><strong>{t("end-time")}:</strong> {windowEndTime}</p>
         </div>
 
         <div className="flex gap-2 border-t border-slate-200 pt-4">
           <Button as="link" href={`/exams/${exam.id}`} variant="secondary" className="flex-1">
-            View
+            {t("view")}
           </Button>
           <Button
             type="button"
@@ -45,7 +47,7 @@ export default function ExamCard({ exam, onDeleted }: ExamCardProps) {
             className="flex-1"
             onClick={() => router.push(`/exams/${exam.id}/edit`)}
           >
-            Edit
+            {t("edit")}
           </Button>
           <DeleteExamButton examId={exam.id} className="flex-1" onDeleted={onDeleted} />
         </div>

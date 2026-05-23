@@ -33,8 +33,8 @@ namespace HireGate.Service.Validators
                 .WithMessage("Exactly one choice must be marked as correct");
 
             RuleFor(x => x.QuestionImage)
-                .Must(img => string.IsNullOrWhiteSpace(img) || Uri.TryCreate(img, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                .WithMessage("Question image must be a valid URL");
+                .Must(QuestionImageValidation.IsValid)
+                .WithMessage("Question image must be a valid URL or app-relative path");
         }
     }
 }

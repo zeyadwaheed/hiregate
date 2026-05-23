@@ -33,6 +33,10 @@ namespace HireGate.API.Endpoints
 
             adminGroup.MapPatch("/{id}/restore", RestoreQuestion)
                 .WithName("RestoreQuestion");
+
+            adminGroup.MapPost("/upload-image", UploadQuestionImage)
+                .WithName("UploadQuestionImage")
+                .DisableAntiforgery();
         }
 
         private static async Task<IResult> GetAllQuestions(
@@ -209,6 +213,27 @@ namespace HireGate.API.Endpoints
             {
                 return Results.BadRequest(new { message = ex.Message });
             }
+        }
+
+        private static async Task<IResult> UploadQuestionImage(IFormFile file, IWebHostEnvironment env)
+        {
+            if (file == null || file.Length == 0)
+                return Results.BadRequest(new { message = "No file was provided." });
+
+            if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return Results.BadRequest(new { message = "Only image files are allowed." });
+
+            var uploadsFolder = Path.Combine(env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "images", "questions");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var extension = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return Results.Ok(new { imageUrl = $"/images/questions/{fileName}" });
         }
 
     }

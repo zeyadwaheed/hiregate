@@ -178,6 +178,7 @@ public async Task<ServiceResult<string>> ForgotPassword(ForgotPasswordDto dto)
     //Console.WriteLine("=======================================");
     
     admin.ResetOtpHash = BCrypt.Net.BCrypt.HashPassword(otp);
+    Console.WriteLine($"OTP Hash: {admin.ResetOtpHash}");
     admin.ResetOtpExpiry = _dateTimeProvider.Now.AddMinutes(3);
 
     await _repo.Update(admin);

@@ -8,20 +8,21 @@ import ExamQuestionPicker from "@/app/_components/exams/exam-question-picker";
 import { createExam } from "@/app/_services/exam-service";
 import type { ExamFormState } from "@/app/_lib/exams/exam-form.types";
 import { validateExamForm } from "@/app/_validations/exams/admin-exam-form";
+import { useTranslations } from "next-intl";
 
 type CreateExamModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-function formatDateTimePreview(value: string) {
+function formatDateTimePreview(value: string, t: any) {
   if (!value) {
-    return "No date selected yet.";
+    return t("no-date-selected");
   }
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "Invalid date selected.";
+    return t("invalid-date");
   }
 
   return date.toLocaleString();
@@ -29,6 +30,7 @@ function formatDateTimePreview(value: string) {
 
 function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
   const router = useRouter();
+  const t = useTranslations("Exams");
   const [step, setStep] = useState<1 | 2>(1);
   const [formState, setFormState] = useState<ExamFormState>({
     positionTitle: "",
@@ -74,7 +76,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
 
   async function handleCreateExam() {
     if (selectedQuestionIds.length === 0) {
-      setErrorMessage("Please select at least one question before creating the exam.");
+      setErrorMessage(t("select-at-least-one"));
       return;
     }
 
@@ -95,7 +97,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
       router.push(`/exams/${savedExam.id}?success=created`);
       router.refresh();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to create exam.");
+      setErrorMessage(error instanceof Error ? error.message : t("failed-create"));
     } finally {
       setIsSubmitting(false);
     }
@@ -114,14 +116,14 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
       >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Create exam</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t("create-exam")}</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-              {step === 1 ? "Exam details" : "Pick questions by topic"}
+              {step === 1 ? t("exam-details") : t("pick-questions-by-topic")}
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               {step === 1
-                ? "Enter the exam settings first, then choose questions by topic."
-                : "Select a topic and pick the questions you want to attach to the exam."}
+                ? t("step1-desc")
+                : t("step2-desc")}
             </p>
           </div>
           <button
@@ -141,14 +143,14 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                 step === 1 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
               }`}
             >
-              Step 1
+              {t("step1")}
             </span>
             <span
               className={`rounded-full px-3 py-1 ${
                 step === 2 ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
               }`}
             >
-              Step 2
+              {t("step2")}
             </span>
           </div>
 
@@ -156,7 +158,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
             <div className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="positionTitle">
-                  Position title
+                  {t("position-title")}
                 </label>
                 <input
                   id="positionTitle"
@@ -168,7 +170,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                       ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                       : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
                   }`}
-                  placeholder="Frontend Developer"
+                  placeholder={t("position-title-placeholder")}
                 />
                 {hasTriedStepOne && formErrors.positionTitle ? (
                   <p className="mt-2 text-sm text-red-600">{formErrors.positionTitle}</p>
@@ -177,7 +179,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="durationMinutes">
-                  Duration in minutes
+                  {t("duration-minutes")}
                 </label>
                 <input
                   id="durationMinutes"
@@ -190,7 +192,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                       ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                       : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"
                   }`}
-                  placeholder="60"
+                  placeholder={t("duration-placeholder")}
                 />
                 {hasTriedStepOne && formErrors.durationMinutes ? (
                   <p className="mt-2 text-sm text-red-600">{formErrors.durationMinutes}</p>
@@ -200,7 +202,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="windowStartTime">
-                    Window start
+                    {t("window-start")}
                   </label>
                   <input
                     id="windowStartTime"
@@ -218,14 +220,14 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                   ) : (
                     <p className="mt-2 text-xs text-slate-500">
                       {formState.windowStartTime
-                        ? `Selected: ${formatDateTimePreview(formState.windowStartTime)}`
-                        : "The browser may highlight today, but nothing is chosen until you pick a date and time."}
+                        ? `${t("selected")} ${formatDateTimePreview(formState.windowStartTime, t)}`
+                        : t("browser-highlight-info")}
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="windowEndTime">
-                    Window end
+                    {t("window-end")}
                   </label>
                   <input
                     id="windowEndTime"
@@ -243,8 +245,8 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                   ) : (
                     <p className="mt-2 text-xs text-slate-500">
                       {formState.windowEndTime
-                        ? `Selected: ${formatDateTimePreview(formState.windowEndTime)}`
-                        : "The browser may highlight today, but nothing is chosen until you pick a date and time."}
+                        ? `${t("selected")} ${formatDateTimePreview(formState.windowEndTime, t)}`
+                        : t("browser-highlight-info")}
                     </p>
                   )}
                 </div>
@@ -267,7 +269,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
             <div className="flex flex-wrap gap-3">
               {step === 2 ? (
                 <Button type="button" variant="secondary" onClick={() => setStep(1)}>
-                  Back
+                  {t("back")}
                 </Button>
               ) : null}
               <Button
@@ -284,7 +286,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                 }
                 disabled={step === 2 ? isSubmitting : false}
               >
-                {step === 1 ? "Next" : isSubmitting ? "Creating..." : "Create exam"}
+                {step === 1 ? t("next") : isSubmitting ? t("creating") : t("create-exam")}
               </Button>
             </div>
           </div>
@@ -295,6 +297,7 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
 }
 
 export default function CreateExamAction() {
+  const t = useTranslations("Exams");
   const [isOpen, setIsOpen] = useState(false);
 
   const handleOpen = () => setIsOpen(true);
@@ -304,7 +307,7 @@ export default function CreateExamAction() {
     <>
       <Button type="button" size="lg" className="w-46 !text-white" onClick={handleOpen}>
         <Plus size={20} />
-        Create Exam
+        {t("create-exam")}
       </Button>
       {isOpen ? <CreateExamModal isOpen={isOpen} onClose={handleClose} /> : null}
     </>

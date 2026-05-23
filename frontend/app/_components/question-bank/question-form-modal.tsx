@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent } from "react";
-import { HelpCircle, Loader, X } from "lucide-react";
+import { FormEvent, useRef, useState } from "react";
+import { HelpCircle, ImageIcon, Loader, X } from "lucide-react";
 import Input from "@/app/_components/ui/input";
 import { QuestionFormData, Topic } from "@/app/_lib/question-bank.types";
 import { useDisableBodyScroll, restoreBodyScroll } from "@/app/_hooks/useDisableBodyScroll";
+import { questionBankService } from "@/app/_services/question-bank-service";
 
 interface QuestionFormModalProps {
   isOpen: boolean;
@@ -32,6 +33,31 @@ export function QuestionFormModal({
   setFormData,
 }: QuestionFormModalProps) {
   useDisableBodyScroll(isOpen);
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const { imageUrl } = await questionBankService.uploadQuestionImage(file);
+      setFormData({ ...formData, imageUrl });
+    } catch {
+      // surface the error without crashing the form
+      alert("Image upload failed. Please try again.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const onRemoveImage = () => {
+    setFormData({ ...formData, imageUrl: "" });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   if (!isOpen) {
     return null;
@@ -86,18 +112,58 @@ export function QuestionFormModal({
               </section>
 
               <section className="flex flex-col gap-3">
-                <label htmlFor="question-image-url" className="block text-sm font-medium text-gray-700">
-                  Image URL <span className="font-normal text-gray-400">(optional)</span>
+                <label htmlFor="question-image-file" className="block text-sm font-medium text-gray-700">
+                  Image <span className="font-normal text-gray-400">(optional)</span>
                 </label>
-                <Input
-                  id="question-image-url"
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(event) =>
-                    setFormData({ ...formData, imageUrl: event.target.value })
-                  }
-                  placeholder="https://…"
-                />
+
+                <div className="flex items-center gap-3">
+                  <label
+                    htmlFor="question-image-file"
+                    className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors
+                      ${isUploadingImage
+                        ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    {isUploadingImage ? (
+                      <Loader size={16} className="animate-spin" />
+                    ) : (
+                      <ImageIcon size={16} />
+                    )}
+                    {isUploadingImage ? "Uploading…" : "Choose image"}
+                  </label>
+                  <input
+                    ref={fileInputRef}
+                    id="question-image-file"
+                    type="file"
+                    accept="image/*"
+                    disabled={isUploadingImage}
+                    onChange={onImageFileChange}
+                    className="sr-only"
+                  />
+                  {formData.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={onRemoveImage}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+                    >
+                      <X size={14} />
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {formData.imageUrl && (
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-slate-50">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Question image preview"
+                      className="max-h-52 w-full object-contain"
+                    />
+                    <p className="border-t border-gray-100 px-3 py-1.5 text-xs text-gray-400">
+                      Preview — hosted at {formData.imageUrl}
+                    </p>
+                  </div>
+                )}
               </section>
 
               <section className="space-y-2">

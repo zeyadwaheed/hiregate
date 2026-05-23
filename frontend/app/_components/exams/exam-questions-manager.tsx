@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import type { BackendQuestionDto } from "@/app/_lib/exams/exam.types";
+import { useTranslations } from "next-intl";
 
 type ExamQuestionsManagerProps = {
   initialQuestions: BackendQuestionDto[];
@@ -14,6 +15,7 @@ export default function ExamQuestionsManager({
   initialQuestions,
 }: ExamQuestionsManagerProps) {
   const [openQuestionIds, setOpenQuestionIds] = useState<number[]>([]);
+  const t = useTranslations("Exams");
 
   function toggleChoices(questionId: number) {
     setOpenQuestionIds((current) =>
@@ -27,15 +29,15 @@ export default function ExamQuestionsManager({
     <Card>
       <CardContent className="space-y-5">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Exam Questions</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{t("exam-questions")}</h2>
           <p className="mt-1 text-sm text-slate-600">
-            Review the questions attached to this exam and open any question to inspect its choices.
+            {t("review-questions")}
           </p>
         </div>
 
         {initialQuestions.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
-            No questions are attached to this exam yet.
+            {t("no-attached-questions")}
           </div>
         ) : (
           <div className="space-y-3">
@@ -58,7 +60,7 @@ export default function ExamQuestionsManager({
                     />
                   )}
                     <p className="mt-1 text-xs text-slate-500">
-                      Topic: {question.topicName || "Uncategorized"}
+                      {t("topic")}: {question.topicName || t("uncategorized")}
                     </p>
                   </div>
                   <Button
@@ -72,17 +74,17 @@ export default function ExamQuestionsManager({
                     }
                   >
                     {openQuestionIds.includes(question.id) ? <EyeOff size={16} /> : <Eye size={16} />}
-                    {openQuestionIds.includes(question.id) ? "Hide Choices" : "View Choices"}
+                    {openQuestionIds.includes(question.id) ? t("hide-choices") : t("view-choices")}
                   </Button>
                 </div>
 
                 {openQuestionIds.includes(question.id) ? (
                   <div className="mt-4 space-y-2 rounded-xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Choices
+                      {t("choices")}
                     </p>
                     {question.choices.length === 0 ? (
-                      <p className="text-sm text-slate-500">No choices available for this question.</p>
+                      <p className="text-sm text-slate-500">{t("no-choices")}</p>
                     ) : (
                       <div className="space-y-2">
                         {question.choices.map((choice) => (
