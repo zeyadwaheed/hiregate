@@ -1,7 +1,6 @@
 "use client";
 
 import { AlertMessage } from "@/app/_components/question-bank/alert-message";
-import { AddTopicModal } from "@/app/_components/question-bank/add-topic-modal";
 import { DeleteConfirmationModal } from "@/app/_components/question-bank/delete-confirmation-modal";
 import { PaginationControls } from "@/app/_components/pagination-controls";
 import { QuestionBankHeader } from "@/app/_components/question-bank/question-bank-header";
@@ -35,23 +34,13 @@ export default function QuestionBankPage() {
     formData,
     setFormData,
     formError,
-    topicName,
-    setTopicName,
-    topicError,
-    isTopicModalOpen,
     isFormModalOpen,
     isEditingMode,
     selectedQuestion,
     setSelectedQuestion,
     deleteQuestion,
     setDeleteQuestion,
-    topicToDelete,
-    setTopicToDelete,
-    confirmDeleteTopic,
     showQuestionDetails,
-    openAddTopicModal,
-    closeAddTopicModal,
-    submitTopic,
     submitQuestion,
     openAddQuestionModal,
     openEditQuestionModal,
@@ -78,7 +67,6 @@ export default function QuestionBankPage() {
 
       <QuestionBankHeader
         loading={loading}
-        onAddTopic={openAddTopicModal}
         onAddQuestion={openAddQuestionModal}
       />
 
@@ -100,7 +88,6 @@ export default function QuestionBankPage() {
               setSelectedTopic(topicId);
               setCurrentPage(1);
             }}
-            onRequestDeleteTopic={(topic) => setTopicToDelete(topic)}
           />
         </div>
       </div>
@@ -156,16 +143,6 @@ export default function QuestionBankPage() {
         onSubmit={submitQuestion}
       />
 
-      <AddTopicModal
-        isOpen={isTopicModalOpen}
-        loading={loading}
-        topicName={topicName}
-        topicError={topicError}
-        onClose={closeAddTopicModal}
-        onSubmit={submitTopic}
-        onTopicNameChange={setTopicName}
-      />
-
       <DeleteConfirmationModal
         isOpen={!!deleteQuestion}
         loading={loading}
@@ -174,17 +151,6 @@ export default function QuestionBankPage() {
         itemLabel={deleteQuestion?.questionText}
         onCancel={() => setDeleteQuestion(null)}
         onConfirm={confirmDeleteQuestion}
-      />
-      <DeleteConfirmationModal
-        isOpen={!!topicToDelete}
-        loading={loading}
-        title="Delete Topic"
-        description="Are you sure you want to delete this topic? Questions that use it may be affected."
-        itemLabel={topicToDelete?.topicName}
-        onCancel={() => setTopicToDelete(null)}
-        onConfirm={() => {
-          void confirmDeleteTopic();
-        }}
       />
     </div>
   );

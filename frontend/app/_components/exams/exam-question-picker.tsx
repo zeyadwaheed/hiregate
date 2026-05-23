@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader, Search } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import { questionBankService } from "@/app/_services/question-bank-service";
+import { topicService } from "@/app/_services/topic-service";
 import type { Question as BankQuestion, Topic } from "@/app/_lib/question-bank.types";
 
 const PAGE_SIZE = 10;
@@ -34,7 +35,7 @@ export default function ExamQuestionPicker({
       setTopicsError(null);
 
       try {
-        const data = await questionBankService.getTopics();
+        const data = await topicService.getTopics();
         setTopics(data ?? []);
       } catch (error) {
         setTopicsError(error instanceof Error ? error.message : "Unable to load topics.");

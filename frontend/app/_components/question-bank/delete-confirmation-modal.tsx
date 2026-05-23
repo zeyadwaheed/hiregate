@@ -61,14 +61,14 @@ export function DeleteConfirmationModal({
             <button
               onClick={() => { onCancel(); }}
               disabled={loading}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={() => { onConfirm(); }}
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:bg-gray-400 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:bg-gray-400 flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading && <Loader size={16} className="animate-spin" />}
               {confirmLabel}

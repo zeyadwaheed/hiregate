@@ -125,28 +125,28 @@ export function CandidateTable({
 
                         <button
                           onClick={() => onView(candidate)}
-                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg cursor-pointer"
                         >
                           <Eye size={16} />
                         </button>
 
                         <button
                           onClick={() => onShowExam(candidate.id)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg cursor-pointer"
                         >
                           <BookOpen size={16} />
                         </button>
 
                         <button
                           onClick={() => onSendEmail(candidate)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg cursor-pointer"
                         >
                           <Mail size={16} />
                         </button>
 
                         <button
                           onClick={() => onDelete(candidate)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                         >
                           <Trash2 size={16} />
                         </button>

@@ -2,7 +2,6 @@ import {
   PaginationData,
   QuestionDeletedFilter,
   QuestionFormData,
-  Topic,
 } from "@/app/_lib/question-bank.types";
 
 const API_BASE_URL = "http://localhost:5116/api/admin";
@@ -16,16 +15,6 @@ const getAuthHeaders = (includeJson = false): HeadersInit => ({
 
 
 export const questionBankService = {
-  async getTopics(): Promise<Topic[]> {
-    const response = await fetch(`${API_BASE_URL}/topics`, {
-      headers: getAuthHeaders(),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to fetch topics");
-    }
-    return response.json();
-  },
-
   async getQuestions(
     page: number,
     pageSize: number,
@@ -110,34 +99,4 @@ export const questionBankService = {
     }
   },
 
-  async addTopic(topicName: string): Promise<Topic> {
-    const response = await fetch(`${API_BASE_URL}/topics`, {
-      method: "POST",
-      headers: getAuthHeaders(true),
-      body: JSON.stringify({ topicName }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to add topic");
-    }
-
-    return response.json();
-  },
-
-  async deleteTopic(topicId: number): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/topics/${topicId}`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const message =
-        typeof errorData === "object" && errorData && "message" in errorData
-          ? String((errorData as { message?: string }).message)
-          : undefined;
-      throw new Error(message || "Failed to delete topic");
-    }
-  },
 };

@@ -11,6 +11,7 @@ import {
   Topic,
 } from "@/app/_lib/question-bank.types";
 import { questionBankService } from "@/app/_services/question-bank-service";
+import { topicService } from "@/app/_services/topic-service";
 
 const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
@@ -38,19 +39,15 @@ export const useQuestionBank = () => {
   const [deletedFilter, setDeletedFilter] = useState<QuestionDeletedFilter>("active");
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [deleteQuestion, setDeleteQuestion] = useState<Question | null>(null);
-  const [topicToDelete, setTopicToDelete] = useState<Topic | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [formData, setFormData] = useState<QuestionFormData>(EMPTY_QUESTION_FORM);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [topicName, setTopicName] = useState("");
-  const [topicError, setTopicError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSuccessVisible, setIsSuccessVisible] = useState(false);
 
@@ -104,7 +101,7 @@ export const useQuestionBank = () => {
   useEffect(() => {
     const loadTopics = async () => {
       try {
-        const data = await questionBankService.getTopics();
+        const data = await topicService.getTopics();
         setTopics(data);
       } catch (error) {
         console.error("Failed to fetch topics:", error);
@@ -142,24 +139,6 @@ export const useQuestionBank = () => {
     setFormError(null);
     resetForm();
     setIsFormModalOpen(true);
-  };
-
-  const openAddTopicModal = () => {
-    setTopicName("");
-    setTopicError(null);
-    setErrorMessage(null);
-    setIsTopicModalOpen(true);
-  };
-
-  const closeAddTopicModal = () => {
-    setIsTopicModalOpen(false);
-    setTopicName("");
-    setTopicError(null);
-    try {
-      restoreBodyScroll();
-    } catch {
-      // noop
-    }
   };
 
   const openEditQuestionModal = (question: Question) => {
@@ -249,59 +228,6 @@ export const useQuestionBank = () => {
     }
   };
 
-  const confirmDeleteTopic = async () => {
-    if (!topicToDelete) {
-      return;
-    }
-
-    const deletedId = topicToDelete.id;
-    const wasSelected = selectedTopic === deletedId.toString();
-
-    setLoading(true);
-    setErrorMessage(null);
-    try {
-      await questionBankService.deleteTopic(deletedId);
-      setTopics((prev) => prev.filter((topic) => topic.id !== deletedId));
-      setTopicToDelete(null);
-      if (wasSelected) {
-        setSelectedTopic("all");
-        setCurrentPage(1);
-      } else {
-        await loadQuestions(currentPage, selectedTopic, searchTerm, deletedFilter, false);
-      }
-      setSuccessMessage("Topic deleted successfully.");
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const submitTopic = async (event: FormEvent) => {
-    event.preventDefault();
-    const normalizedTopicName = topicName.trim();
-    if (!normalizedTopicName) {
-      setTopicError("Topic name is required.");
-      return;
-    }
-
-    setLoading(true);
-    setErrorMessage(null);
-    setTopicError(null);
-    try {
-      const createdTopic = await questionBankService.addTopic(normalizedTopicName);
-      setTopics((prev) => [...prev, createdTopic]);
-      setCurrentPage(1);
-      closeAddTopicModal();
-      setSuccessMessage("Topic added successfully.");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "An error occurred";
-      setTopicError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const restoreQuestion = async (question: Question) => {
     setLoading(true);
     setErrorMessage(null);
@@ -343,23 +269,13 @@ export const useQuestionBank = () => {
     formData,
     setFormData,
     formError,
-    topicName,
-    setTopicName,
-    topicError,
-    isTopicModalOpen,
     isFormModalOpen,
     isEditingMode,
     selectedQuestion,
     setSelectedQuestion,
     deleteQuestion,
     setDeleteQuestion,
-    topicToDelete,
-    setTopicToDelete,
-    confirmDeleteTopic,
     showQuestionDetails,
-    openAddTopicModal,
-    closeAddTopicModal,
-    submitTopic,
     submitQuestion,
     openAddQuestionModal,
     openEditQuestionModal,

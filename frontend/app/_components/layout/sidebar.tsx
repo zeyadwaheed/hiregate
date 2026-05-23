@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: "/question-bank", label: "Question Bank", description: "MCQ library" },
   { href: "/candidates", label: "Candidates", description: "Submissions and status" },
   { href: "/admins", label: "Admins", description: "Owner HR management" },
+  { href: "/topics", label: "Topics", description: "Topic management" },
 ];
 
 export default function Sidebar() {

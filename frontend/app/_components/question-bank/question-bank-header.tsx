@@ -2,13 +2,11 @@ import { Plus } from "lucide-react";
 
 interface QuestionBankHeaderProps {
   loading: boolean;
-  onAddTopic: () => void;
   onAddQuestion: () => void;
 }
 
 export function QuestionBankHeader({
   loading,
-  onAddTopic,
   onAddQuestion,
 }: QuestionBankHeaderProps) {
   return (
@@ -18,14 +16,6 @@ export function QuestionBankHeader({
         <p className="text-gray-600 mt-1">Manage your library of exam questions</p>
       </div>
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-        <button
-          onClick={onAddTopic}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 w-full sm:w-auto cursor-pointer"
-        >
-          <Plus size={20} />
-          Add Topic
-        </button>
         <button
           onClick={onAddQuestion}
           disabled={loading}

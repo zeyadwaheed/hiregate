@@ -10,6 +10,7 @@ interface AddTopicModalProps {
   loading: boolean;
   topicName: string;
   topicError: string | null;
+  isEditing?: boolean;
   onClose: () => void;
   onSubmit: (event: FormEvent) => void;
   onTopicNameChange: (value: string) => void;
@@ -21,11 +22,12 @@ export function AddTopicModal({
   loading,
   topicName,
   topicError,
+  isEditing = false,
   onClose,
   onSubmit,
   onTopicNameChange,
 }: AddTopicModalProps) {
-  const t = useTranslations();
+  const t = useTranslations("Add-topics");
 
   useDisableBodyScroll(isOpen);
 
@@ -37,10 +39,12 @@ export function AddTopicModal({
     <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => { restoreBodyScroll(); onClose(); }}>
       <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-900">{t("add-topic")}</h3>
+          <h3 className="text-xl font-bold text-gray-900">
+            {isEditing ? "Edit Topic" : t("add-topic")}
+          </h3>
           <button
             onClick={() => { restoreBodyScroll(); onClose(); }}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Close add topic modal"
           >
             <X size={22} />
@@ -71,17 +75,17 @@ export function AddTopicModal({
             <button
               type="button"
               onClick={() => { restoreBodyScroll(); onClose(); }}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
             >
               {t("cancel")}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading && <Loader size={16} className="animate-spin" />}
-              {t("add")}
+              {isEditing ? "Save Topic" : t("add")}
             </button>
           </div>
         </form>
