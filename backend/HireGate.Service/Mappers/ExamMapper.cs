@@ -12,6 +12,7 @@ namespace HireGate.Service.Mappers
             {
                 Id = e.Id,
                 PositionTitle = e.PositionTitle!,
+                Mode = ToModeString(e.Mode),
                 DurationMinutes = e.DurationMinutes,
                 QuestionCount = e.QuestionCount,
                 WindowStartTime = e.WindowStartTime,
@@ -25,6 +26,7 @@ namespace HireGate.Service.Mappers
             {
                 Id = e.Id,
                 PositionTitle = e.PositionTitle!,
+                Mode = ToModeString(e.Mode),
                 DurationMinutes = e.DurationMinutes,
                 QuestionCount = e.QuestionCount,
                 WindowStartTime = e.WindowStartTime,
@@ -33,7 +35,11 @@ namespace HireGate.Service.Mappers
                 Questions = e.ExamQuestions?
                     .Where(eq => eq.Question != null)
                     .Select(eq => ToQuestionDto(eq.Question))
-                    .ToList() ?? new List<QuestionDto>()
+                    .ToList() ?? new List<QuestionDto>(),
+
+                TopicRules = e.TopicRules?
+                    .Select(ToTopicRuleDto)
+                    .ToList() ?? new List<ExamTopicRuleDto>()
             };
         }
 
@@ -43,15 +49,33 @@ namespace HireGate.Service.Mappers
             {
                 Id = e.Id,
                 PositionTitle = e.PositionTitle!,
+                Mode = ToModeString(e.Mode),
                 DurationMinutes = e.DurationMinutes,
                 QuestionCount = e.QuestionCount,
                 WindowStartTime = e.WindowStartTime,
                 WindowEndTime = e.WindowEndTime,
                 Questions = questions
                     .Select(ToQuestionDto)
-                    .ToList()
+                    .ToList(),
+                TopicRules = e.TopicRules?
+                    .Select(ToTopicRuleDto)
+                    .ToList() ?? new List<ExamTopicRuleDto>()
             };
         }
+
+        public static ExamTopicRuleDto ToTopicRuleDto(ExamTopicRule rule)
+        {
+            return new ExamTopicRuleDto
+            {
+                Id = rule.Id,
+                TopicId = rule.TopicId,
+                TopicName = rule.Topic?.TopicName ?? string.Empty,
+                QuestionCount = rule.QuestionCount
+            };
+        }
+
+        public static string ToModeString(ExamMode mode)
+            => mode.ToString().ToLower();
 
         // Helper method to map Question entity to QuestionDto
         public static QuestionDto ToQuestionDto(Question q)
@@ -84,10 +108,22 @@ namespace HireGate.Service.Mappers
             return new Exam
             {
                 PositionTitle = dto.PositionTitle,
+                Mode = ParseMode(dto.Mode),
                 DurationMinutes = dto.DurationMinutes,
                 WindowStartTime = dto.WindowStartTime,
                 WindowEndTime = dto.WindowEndTime,
                 ExamQuestions = new List<ExamQuestion>()
+            };
+        }
+
+        public static ExamMode ParseMode(string? mode)
+        {
+            return mode?.Trim().ToLowerInvariant() switch
+            {
+                null or "" or "static" => ExamMode.Static,
+                "dynamic" => ExamMode.Dynamic,
+                "hybrid" => ExamMode.Hybrid,
+                _ => throw new ArgumentException("Invalid exam mode.", nameof(mode))
             };
         }
     }

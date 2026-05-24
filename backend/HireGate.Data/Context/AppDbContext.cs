@@ -14,6 +14,8 @@ namespace HireGate.Data.Context
         public DbSet<Choice> Choices => Set<Choice>();
         public DbSet<Exam> Exams => Set<Exam>();
         public DbSet<CandidateAnswer> CandidateAnswers => Set<CandidateAnswer>();
+        public DbSet<ExamTopicRule> ExamTopicRules => Set<ExamTopicRule>();
+        public DbSet<CandidateExamQuestion> CandidateExamQuestions => Set<CandidateExamQuestion>();
 
         public DbSet<ExamQuestion> ExamQuestions => Set<ExamQuestion>();
 

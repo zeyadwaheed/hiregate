@@ -32,18 +32,21 @@ function buildExamDescription(exam: BackendExamDto) {
 // Mapping function to convert BackendExamDto to Exam for UI consumption
 export function mapBackendExamToExam(exam: BackendExamDto): Exam {
   const questions = exam.questions ?? [];
+  const mode = exam.mode ?? "static";
 
   return {
     id: exam.id,
     title: exam.positionTitle,
     description: buildExamDescription(exam),
+    mode,
     duration: exam.durationMinutes ? `${exam.durationMinutes} minutes` : "No duration set",
     durationMinutes: exam.durationMinutes ?? undefined,
-    questionCount: questions.length,
+    questionCount: exam.questionCount ?? questions.length,
     windowStartTime: exam.windowStartTime ?? undefined,
     windowEndTime: exam.windowEndTime ?? undefined,
     questionIds: questions.map((question) => question.id),
     questions,
+    topicRules: exam.topicRules ?? [],
   };
 }
 
@@ -138,6 +141,7 @@ export async function getExamsPage(
     data: (result.data ?? []).map((exam): ExamSummary => ({
     id: exam.id,
     positionTitle: exam.positionTitle,
+    mode: exam.mode ?? "static",
     durationMinutes: exam.durationMinutes,
     questionCount: exam.questionCount,
     windowStartTime: exam.windowStartTime,

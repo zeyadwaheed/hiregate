@@ -25,6 +25,7 @@ public class Candidate
     public Exam? Exam { get; set; }
 
     public ICollection<CandidateAnswer> Answers { get; set; } = new List<CandidateAnswer>();
+    public ICollection<CandidateExamQuestion> CandidateExamQuestions { get; set; } = new List<CandidateExamQuestion>();
 
     // Navigation property
     }

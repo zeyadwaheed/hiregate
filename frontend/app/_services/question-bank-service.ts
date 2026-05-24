@@ -1,5 +1,6 @@
 import {
   PaginationData,
+  Topic,
   QuestionDeletedFilter,
   QuestionFormData,
 } from "@/app/_lib/question-bank.types";

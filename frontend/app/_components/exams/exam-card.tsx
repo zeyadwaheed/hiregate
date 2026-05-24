@@ -31,6 +31,7 @@ export default function ExamCard({ exam, onDeleted }: ExamCardProps) {
         </div>
 
         <div className="mb-4 space-y-3 text-sm text-slate-600 transition-colors duration-300 group-hover:text-slate-700">
+          <p>Mode: {exam.mode[0].toLocaleUpperCase() + exam.mode.slice(1)}</p>
           <p>{t("duration")}: {exam.durationMinutes} {t("minutes")}</p>
           <p>{t("questions")}: {exam.questionCount}</p>
           <p><strong>{t("start-time")}:</strong> {windowStartTime}</p>

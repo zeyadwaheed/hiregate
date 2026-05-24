@@ -48,21 +48,28 @@ namespace HireGate.Service.Implementations
         // ─────────────────────────────
         public async Task<ExamDto> CreateExamAsync(CreateExamDto dto)
         {
-            var questionIds = (dto.QuestionIds ?? []).Distinct().ToList();
+            var mode = ExamMapper.ParseMode(dto.Mode);
+            var questionIds = UsesStaticQuestions(mode) ? (dto.QuestionIds ?? []).Distinct().ToList() : [];
+            var topicRules = UsesTopicRules(mode) ? NormalizeTopicRules(dto.TopicRules) : [];
+            ValidateModePayload(mode, questionIds, topicRules);
+
             var invalidIds = await _examQuestionRepository.GetNonExistentQuestionIdsAsync(questionIds);
             if (invalidIds.Any()) throw new InvalidQuestionIdsException(invalidIds);
+            await ValidateTopicIdsAsync(topicRules);
 
             var exam = ExamMapper.ToEntity(dto);
+            exam.Mode = mode;
+            exam.QuestionCount = CalculateQuestionCount(questionIds, topicRules);
             _examRepository.CreateExam(exam);
             await _examRepository.SaveAsync();
 
-            foreach (var qId in questionIds)
-                _examQuestionRepository.AddQuestion(exam.Id, qId);
-
-            if (questionIds.Any())
-                await _examQuestionRepository.SaveAsync();
-
-            await _examQuestionRepository.SyncExamQuestionCountAsync(exam.Id);
+            await _examRepository.ReplaceExamQuestionsAsync(exam.Id, questionIds);
+            await _examRepository.ReplaceExamTopicRulesAsync(exam.Id, topicRules.Select(rule => new ExamTopicRule
+            {
+                TopicId = rule.TopicId,
+                QuestionCount = rule.QuestionCount
+            }));
+            await _examRepository.SaveAsync();
 
             var created = await _examRepository.GetExamByIdAsync(exam.Id);
             return ExamMapper.ToDto(created!);
@@ -76,28 +83,30 @@ namespace HireGate.Service.Implementations
             var exam = await _examRepository.GetExamByIdForUpdateAsync(id);
             if (exam is null) return null;
 
-            var addedQuestionIds = dto.AddedQuestionIds?.Distinct().ToList() ?? [];
-            var removedQuestionIds = dto.RemovedQuestionIds?.Distinct().ToList() ?? [];
-            var idsToValidate = addedQuestionIds.Concat(removedQuestionIds).Distinct().ToList();
-            var invalidIds = await _examQuestionRepository.GetNonExistentQuestionIdsAsync(idsToValidate);
+            var mode = dto.Mode is null ? exam.Mode : ExamMapper.ParseMode(dto.Mode);
+            var questionIds = UsesStaticQuestions(mode) ? ResolveUpdatedQuestionIds(exam, dto) : [];
+            var topicRules = UsesTopicRules(mode) ? NormalizeTopicRules(dto.TopicRules ?? exam.TopicRules.Select(ExamMapper.ToTopicRuleDto)) : [];
+            ValidateModePayload(mode, questionIds, topicRules);
+
+            var invalidIds = await _examQuestionRepository.GetNonExistentQuestionIdsAsync(questionIds);
             if (invalidIds.Any()) throw new InvalidQuestionIdsException(invalidIds);
+            await ValidateTopicIdsAsync(topicRules);
 
             if (dto.PositionTitle is not null) exam.PositionTitle = dto.PositionTitle;
+            exam.Mode = mode;
             if (dto.DurationMinutes.HasValue) exam.DurationMinutes = dto.DurationMinutes;
             if (dto.WindowStartTime.HasValue) exam.WindowStartTime = dto.WindowStartTime;
             if (dto.WindowEndTime.HasValue) exam.WindowEndTime = dto.WindowEndTime;
+            exam.QuestionCount = CalculateQuestionCount(questionIds, topicRules);
 
-            var existingIds = exam.ExamQuestions.Select(eq => eq.QuestionId).ToHashSet();
+            await _examRepository.ReplaceExamQuestionsAsync(id, questionIds);
+            await _examRepository.ReplaceExamTopicRulesAsync(id, topicRules.Select(rule => new ExamTopicRule
+            {
+                TopicId = rule.TopicId,
+                QuestionCount = rule.QuestionCount
+            }));
 
-            foreach (var qId in removedQuestionIds.Where(existingIds.Contains))
-                await _examQuestionRepository.RemoveQuestionAsync(id, qId);
-
-            foreach (var qId in addedQuestionIds.Where(qId => !existingIds.Contains(qId)))
-                _examQuestionRepository.AddQuestion(id, qId);
-
-            _examRepository.UpdateExam(exam);
             await _examRepository.SaveAsync();
-            await _examQuestionRepository.SyncExamQuestionCountAsync(id);
 
             var updated = await _examRepository.GetExamByIdAsync(id);
             return ExamMapper.ToDto(updated!);
@@ -139,5 +148,60 @@ namespace HireGate.Service.Implementations
             await _examQuestionRepository.SyncExamQuestionCountAsync(examId);
             return true;
         }
+
+        private static bool UsesStaticQuestions(ExamMode mode)
+            => mode is ExamMode.Static or ExamMode.Hybrid;
+
+        private static bool UsesTopicRules(ExamMode mode)
+            => mode is ExamMode.Dynamic or ExamMode.Hybrid;
+
+        private static List<int> ResolveUpdatedQuestionIds(Exam exam, UpdateExamDto dto)
+        {
+            if (dto.QuestionIds is not null)
+            {
+                return dto.QuestionIds.Distinct().ToList();
+            }
+
+            var questionIds = exam.ExamQuestions.Select(eq => eq.QuestionId).ToHashSet();
+
+            foreach (var questionId in dto.RemovedQuestionIds ?? [])
+                questionIds.Remove(questionId);
+
+            foreach (var questionId in dto.AddedQuestionIds ?? [])
+                questionIds.Add(questionId);
+
+            return questionIds.ToList();
+        }
+
+        private static List<ExamTopicRuleDto> NormalizeTopicRules(IEnumerable<ExamTopicRuleDto>? rules)
+        {
+            return (rules ?? [])
+                .GroupBy(rule => rule.TopicId)
+                .Select(group => new ExamTopicRuleDto
+                {
+                    TopicId = group.Key,
+                    QuestionCount = group.Sum(rule => rule.QuestionCount)
+                })
+                .ToList();
+        }
+
+        private static void ValidateModePayload(ExamMode mode, IReadOnlyCollection<int> questionIds, IReadOnlyCollection<ExamTopicRuleDto> topicRules)
+        {
+            if (UsesStaticQuestions(mode) && questionIds.Count == 0)
+                throw new ArgumentException("Static exams must have at least one question.");
+
+            if (UsesTopicRules(mode) && topicRules.Count == 0)
+                throw new ArgumentException("Dynamic exams must have at least one topic rule.");
+        }
+
+        private async Task ValidateTopicIdsAsync(IEnumerable<ExamTopicRuleDto> topicRules)
+        {
+            var topicIds = topicRules.Select(rule => rule.TopicId).ToList();
+            var invalidTopicIds = await _examRepository.GetNonExistentTopicIdsAsync(topicIds);
+            if (invalidTopicIds.Any()) throw new InvalidTopicIdsException(invalidTopicIds);
+        }
+
+        private static int CalculateQuestionCount(IEnumerable<int> questionIds, IEnumerable<ExamTopicRuleDto> topicRules)
+            => questionIds.Distinct().Count() + topicRules.Sum(rule => rule.QuestionCount);
     }
 }

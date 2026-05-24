@@ -6,8 +6,9 @@ import Input from "@/app/_components/ui/input";
 import { Button } from "@/app/_components/ui/button";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import ExamQuestionPicker from "@/app/_components/exams/exam-question-picker";
+import ExamTopicRulesEditor from "@/app/_components/exams/exam-topic-rules-editor";
 import { updateExam } from "@/app/_services/exam-service";
-import type { Exam } from "@/app/_lib/exams/exam.types";
+import type { Exam, ExamMode, ExamTopicRule } from "@/app/_lib/exams/exam.types";
 import type { ExamFormState } from "@/app/_lib/exams/exam-form.types";
 import { useTranslations } from "next-intl";
 
@@ -34,9 +35,19 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
     windowStartTime: toDateTimeLocalValue(exam.windowStartTime),
     windowEndTime: toDateTimeLocalValue(exam.windowEndTime),
   });
+  const [examMode, setExamMode] = useState<ExamMode>(exam.mode);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>(initialQuestionIds);
+  const [topicRules, setTopicRules] = useState<ExamTopicRule[]>(exam.topicRules);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  function usesQuestions(mode: ExamMode) {
+    return mode === "static" || mode === "hybrid";
+  }
+
+  function usesTopicRules(mode: ExamMode) {
+    return mode === "dynamic" || mode === "hybrid";
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,13 +55,31 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
     setErrorMessage(null);
 
     const uniqueIds = Array.from(new Set(selectedQuestionIds));
+    const normalizedTopicRules = topicRules.map((rule) => ({
+      topicId: rule.topicId,
+      questionCount: rule.questionCount,
+    }));
+
+    if (usesQuestions(examMode) && uniqueIds.length === 0) {
+      setIsSubmitting(false);
+      setErrorMessage("Select at least one question.");
+      return;
+    }
+
+    if (usesTopicRules(examMode) && normalizedTopicRules.length === 0) {
+      setIsSubmitting(false);
+      setErrorMessage("Add at least one topic rule.");
+      return;
+    }
+
     const payload = {
       positionTitle: formState.positionTitle.trim(),
+      mode: examMode,
       durationMinutes: formState.durationMinutes ? Number(formState.durationMinutes) : null,
       windowStartTime: formState.windowStartTime || null,
       windowEndTime: formState.windowEndTime || null,
-      addedQuestionIds: uniqueIds.filter((id) => !initialQuestionIds.includes(id)),
-      removedQuestionIds: initialQuestionIds.filter((id) => !uniqueIds.includes(id)),
+      questionIds: usesQuestions(examMode) ? uniqueIds : [],
+      topicRules: usesTopicRules(examMode) ? normalizedTopicRules : [],
     };
 
     try {
@@ -95,6 +124,25 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
             />
           </div>
 
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="examMode">
+              Exam mode
+            </label>
+            <select
+              id="examMode"
+              value={examMode}
+              onChange={(event) => {
+                setErrorMessage(null);
+                setExamMode(event.target.value as ExamMode);
+              }}
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="static">Static</option>
+              <option value="dynamic">Dynamic</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+          </div>
+
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="windowStartTime">
@@ -120,6 +168,7 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
             </div>
           </div>
 
+          {usesQuestions(examMode) ? (
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">{t("questions")}</label>
             <ExamQuestionPicker
@@ -127,6 +176,11 @@ export default function UpdateExamForm({ exam }: ExamFormProps) {
               onChange={setSelectedQuestionIds}
             />
           </div>
+          ) : null}
+
+          {usesTopicRules(examMode) ? (
+            <ExamTopicRulesEditor rules={topicRules} onChange={setTopicRules} />
+          ) : null}
 
           {errorMessage ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">

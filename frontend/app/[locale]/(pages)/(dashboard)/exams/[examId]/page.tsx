@@ -84,6 +84,10 @@ export default function ExamDetailsPage() {
       <Card>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Mode</p>
+            <p className="mt-1 text-sm capitalize text-slate-900">{exam.mode}</p>
+          </div>
+          <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("duration")}</p>
             <p className="mt-1 text-sm text-slate-900">{exam.duration}</p>
           </div>
@@ -102,7 +106,33 @@ export default function ExamDetailsPage() {
         </CardContent>
       </Card>
 
-      <ExamQuestionsManager initialQuestions={exam.questions} />
+      {exam.mode !== "static" ? (
+        <Card>
+          <CardContent className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Topic rules</h2>
+              <p className="mt-1 text-sm text-slate-600">Dynamic question counts configured for this exam.</p>
+            </div>
+
+            {exam.topicRules.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-slate-300 p-4 text-sm text-slate-500">
+                No topic rules configured.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-200 rounded-lg border border-slate-200">
+                {exam.topicRules.map((rule) => (
+                  <div key={rule.id ?? rule.topicId} className="flex items-center justify-between gap-4 p-4 text-sm">
+                    <span className="font-medium text-slate-900">{rule.topicName || `Topic #${rule.topicId}`}</span>
+                    <span className="text-slate-600">{rule.questionCount} questions</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {exam.mode !== "dynamic" ? <ExamQuestionsManager initialQuestions={exam.questions} /> : null}
     </section>
   );
 }

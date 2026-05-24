@@ -86,6 +86,22 @@ namespace HireGate.API.Endpoints;
                             error = "One or more question IDs are invalid.",
                         });
                     }
+                    catch (InvalidTopicIdsException)
+                    {
+                        return Results.BadRequest(new
+                        {
+                            field = "TopicRules",
+                            error = "One or more topic IDs are invalid.",
+                        });
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        return Results.BadRequest(new
+                        {
+                            field = "Mode",
+                            error = ex.Message,
+                        });
+                    }
                     
                 });
 
@@ -120,8 +136,24 @@ namespace HireGate.API.Endpoints;
                 {
                     return Results.BadRequest(new
                     {
-                        field = "AddedQuestionIds/RemovedQuestionIds",
+                        field = "QuestionIds",
                         error = "One or more question IDs are invalid.",
+                    });
+                }
+                catch(InvalidTopicIdsException)
+                {
+                    return Results.BadRequest(new
+                    {
+                        field = "TopicRules",
+                        error = "One or more topic IDs are invalid.",
+                    });
+                }
+                catch(ArgumentException ex)
+                {
+                    return Results.BadRequest(new
+                    {
+                        field = "Mode",
+                        error = ex.Message,
                     });
                 }
                 

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/app/_components/ui/button";
 import ExamQuestionPicker from "@/app/_components/exams/exam-question-picker";
+import ExamTopicRulesEditor from "@/app/_components/exams/exam-topic-rules-editor";
 import { createExam } from "@/app/_services/exam-service";
+import type { ExamMode, ExamTopicRule } from "@/app/_lib/exams/exam.types";
 import type { ExamFormState } from "@/app/_lib/exams/exam-form.types";
 import { validateExamForm } from "@/app/_validations/exams/admin-exam-form";
 import { useTranslations } from "next-intl";
@@ -38,7 +40,9 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
     windowStartTime: "",
     windowEndTime: "",
   });
+  const [examMode, setExamMode] = useState<ExamMode>("static");
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
+  const [topicRules, setTopicRules] = useState<ExamTopicRule[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -74,9 +78,28 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
     return Object.keys(errors).length === 0;
   }
 
+  function usesQuestions(mode: ExamMode) {
+    return mode === "static" || mode === "hybrid";
+  }
+
+  function usesTopicRules(mode: ExamMode) {
+    return mode === "dynamic" || mode === "hybrid";
+  }
+
   async function handleCreateExam() {
-    if (selectedQuestionIds.length === 0) {
-      setErrorMessage(t("select-at-least-one"));
+    const questionIds = Array.from(new Set(selectedQuestionIds));
+    const normalizedTopicRules = topicRules.map((rule) => ({
+      topicId: rule.topicId,
+      questionCount: rule.questionCount,
+    }));
+
+    if (usesQuestions(examMode) && questionIds.length === 0) {
+      setErrorMessage("Select at least one question.");
+      return;
+    }
+
+    if (usesTopicRules(examMode) && normalizedTopicRules.length === 0) {
+      setErrorMessage("Add at least one topic rule.");
       return;
     }
 
@@ -86,10 +109,12 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
     try {
       const payload = {
         positionTitle: formState.positionTitle.trim(),
+        mode: examMode,
         durationMinutes: formState.durationMinutes ? Number(formState.durationMinutes) : null,
         windowStartTime: formState.windowStartTime || null,
         windowEndTime: formState.windowEndTime || null,
-        questionIds: selectedQuestionIds,
+        questionIds: usesQuestions(examMode) ? questionIds : [],
+        topicRules: usesTopicRules(examMode) ? normalizedTopicRules : [],
       };
 
       const savedExam = await createExam(payload);
@@ -251,12 +276,39 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
                   )}
                 </div>
               </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="examMode">
+                  Exam mode
+                </label>
+                <select
+                  id="examMode"
+                  value={examMode}
+                  onChange={(event) => {
+                    setErrorMessage(null);
+                    setExamMode(event.target.value as ExamMode);
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="static">Static</option>
+                  <option value="dynamic">Dynamic</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
             </div>
           ) : (
-            <ExamQuestionPicker
-              selectedQuestionIds={selectedQuestionIds}
-              onChange={handleQuestionSelectionChange}
-            />
+            <div className="space-y-6">
+              {usesQuestions(examMode) ? (
+                <ExamQuestionPicker
+                  selectedQuestionIds={selectedQuestionIds}
+                  onChange={handleQuestionSelectionChange}
+                />
+              ) : null}
+
+              {usesTopicRules(examMode) ? (
+                <ExamTopicRulesEditor rules={topicRules} onChange={setTopicRules} />
+              ) : null}
+            </div>
           )}
 
           {errorMessage ? (
