@@ -78,12 +78,14 @@ public async Task<ServiceResult<PagedResult<CandidateResponseDto>>> GetAll(int p
 
 public async Task<ServiceResult<CreateCandidateResponseDto>> CreateCandidate(CreateCandidateDto dto)
 {
+    /*
     var exists = await _repo.ExistsByEmail(dto.Email);
 
         if (exists)
     {
         return ServiceResult<CreateCandidateResponseDto>.Fail("Email already exists");
     }
+    */
 
     var candidate = new Candidate
     {
@@ -226,43 +228,84 @@ public async Task<ServiceResult<BulkEmailResultDto>>  SendBulkExamEmail(SendBulk
 }
 
 
+
 public async Task<ServiceResult<ExamPageDto?>> GetExamPage(string token)
 {
     var candidate = await _repo.GetByTokenBasic(token);
 
+    // real error → invalid token
     if (candidate == null)
         return ServiceResult<ExamPageDto?>.Fail("Candidate not found");
-if (candidate.ExamId is null)
-    return ServiceResult<ExamPageDto?>.Fail("Exam not found");
 
-var exam = await _examRepo.GetExamByIdAsync(candidate.ExamId.Value);
+    // real error → misconfiguration
+    if (candidate.ExamId is null)
+        return ServiceResult<ExamPageDto?>.Fail("Exam not assigned");
+
+    var exam = await _examRepo.GetExamByIdAsync(candidate.ExamId.Value);
+
+    // real error → broken data
     if (exam == null)
         return ServiceResult<ExamPageDto?>.Fail("Exam not found");
 
     var now = _dateTimeProvider.Now;
 
-    if (exam.WindowStartTime == null || exam.WindowStartTime > now)
-        return ServiceResult<ExamPageDto?>.Fail("Exam not found");
+    // ---------------- WINDOW STATUS ----------------
+    string windowStatus;
 
-    if (exam.WindowEndTime == null || exam.WindowEndTime < now)
-        return ServiceResult<ExamPageDto?>.Fail("Exam not found");
+    if (exam.WindowStartTime == null || exam.WindowEndTime == null)
+    {
+        windowStatus = "closed";
+    }
+    else if (now < exam.WindowStartTime)
+    {
+        windowStatus = "upcoming";
+    }
+    else if (now > exam.WindowEndTime)
+    {
+        windowStatus = "closed";
+    }
+    else
+    {
+        windowStatus = "open";
+    }
 
+    // ---------------- SUBMITTED STATE (IMPORTANT FIX) ----------------
+    if (candidate.SubmittedAt != null)
+    {
+        return ServiceResult<ExamPageDto?>.Ok(new ExamPageDto
+        {
+            FirstName = candidate.FirstName,
+            LastName = candidate.LastName,
+            Email = candidate.Email,
+            PhoneNumber = candidate.PhoneNumber,
+
+            ExamTitle = exam.PositionTitle,
+            DurationMinutes = exam.DurationMinutes,
+            QuestionCount = exam.QuestionCount,
+            WindowStartTime = exam.WindowStartTime,
+            WindowEndTime = exam.WindowEndTime,
+
+            WindowStatus = "submitted"
+        });
+    }
+
+    // ---------------- NORMAL RESPONSE ----------------
     return ServiceResult<ExamPageDto?>.Ok(new ExamPageDto
     {
         FirstName = candidate.FirstName,
         LastName = candidate.LastName,
         Email = candidate.Email,
         PhoneNumber = candidate.PhoneNumber,
-        //ExamId = candidate.ExamId,
+
         ExamTitle = exam.PositionTitle,
         DurationMinutes = exam.DurationMinutes,
         QuestionCount = exam.QuestionCount,
         WindowStartTime = exam.WindowStartTime,
-        WindowEndTime = exam.WindowEndTime
+        WindowEndTime = exam.WindowEndTime,
+
+        WindowStatus = windowStatus
     });
 }
-
-
 public async Task<ServiceResult<CompleteCandidateProfileResponseDto?>> CompleteProfile(string token, CompleteCandidateProfileDto dto)
 {
     var candidate = await _repo.GetByTokenBasic(token);
@@ -300,9 +343,19 @@ public async Task<ServiceResult<StartExamResponseDto>> StartExam(string token)
     if (candidate == null || candidate.Exam == null)
         return ServiceResult<StartExamResponseDto>.Fail("Invalid token");
 
+    if (candidate.SubmittedAt != null)
+        return ServiceResult<StartExamResponseDto>.Fail("Exam already submitted");
+
     var now = _dateTimeProvider.Now;
     var exam = candidate.Exam;
 
+    // Window check (IMPORTANT)
+    var windowStatus = GetWindowStatus(now, exam.WindowStartTime, exam.WindowEndTime);
+
+    if (windowStatus != "open")
+        return ServiceResult<StartExamResponseDto>.Fail("Exam window is not open");
+
+    // Start exam once
     if (candidate.StartedAt == null)
     {
         candidate.StartedAt = now;
@@ -389,13 +442,32 @@ public async Task<ServiceResult<ExamReviewDto?>> GetExamReview(int candidateId)
 
     var finalScore = questions.Count(q => q.IsCorrect);
 
-    return ServiceResult<ExamReviewDto?>.Ok(new ExamReviewDto
-    {
-        CandidateId = candidate.Id,
-        CandidateName = $"{candidate.FirstName} {candidate.LastName}".Trim(),
-        FinalScore = finalScore,
-        Questions = questions
-    });
+return ServiceResult<ExamReviewDto?>.Ok(new ExamReviewDto
+{
+    CandidateId = candidate.Id,
+    CandidateName = $"{candidate.FirstName} {candidate.LastName}".Trim(),
+    CandidateEmail = candidate.Email, 
+ExamTitle = candidate.Exam?.PositionTitle,
+    FinalScore = finalScore,
+    Questions = questions
+});
+}
+
+
+
+
+private string GetWindowStatus(DateTime now, DateTime? start, DateTime? end)
+{
+    if (start == null || end == null)
+        return "closed";
+
+    if (now < start)
+        return "upcoming";
+
+    if (now > end)
+        return "closed";
+
+    return "open";
 }
 }
 }

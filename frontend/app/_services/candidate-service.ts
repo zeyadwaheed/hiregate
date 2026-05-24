@@ -56,6 +56,7 @@ export type Candidate = {
 export type CandidateExamReview = {
   candidateId: number;
   candidateName: string;
+    candidateEmail: string; // ✅ ADD THIS
   examTitle: string;
   finalScore: number | null;
   questions: Array<{
@@ -274,6 +275,7 @@ export async function getCandidateExamReview(id: number): Promise<CandidateExamR
   const raw = await readJsonResponse<{
     candidateId?: number;
     candidateName?: string;
+    candidateEmail?: string; // ✅ ADD THIS
     examTitle?: string;
     finalScore?: number | null;
     questions?: Array<{
@@ -292,30 +294,31 @@ export async function getCandidateExamReview(id: number): Promise<CandidateExamR
     }>;
   }>(res, "Failed to load exam review");
 
-  return {
-    candidateId: raw.candidateId ?? id,
-    candidateName: raw.candidateName ?? "",
-    examTitle: raw.examTitle ?? "Exam review",
-    finalScore: raw.finalScore ?? null,
-    questions: (raw.questions ?? []).map((question) => ({
-      questionId: question.questionId ?? 0,
-      questionText: question.questionText ?? "",
-      questionImage: question.questionImage ?? null,
-      selectedChoiceId: question.selectedChoiceId ?? null,
-      isCorrect: (question.choices ?? []).some((choice) => {
-        const choiceId = choice.choiceId ?? choice.id ?? 0;
-        return Boolean(choice.isCorrect) && choiceId === (question.selectedChoiceId ?? null);
-      }),
-      choices: (question.choices ?? []).map((choice) => {
-        const choiceId = choice.choiceId ?? choice.id ?? 0;
-        return {
-          id: choiceId,
-          text: choice.choiceText ?? choice.text ?? "",
-          isCorrect: Boolean(choice.isCorrect),
-        };
-      }),
-    })),
-  };
+return {
+  candidateId: raw.candidateId ?? id,
+  candidateName: raw.candidateName ?? "",
+  candidateEmail: raw.candidateEmail ?? "", // ✅ ADD THIS
+  examTitle: raw.examTitle ?? "Exam review",
+  finalScore: raw.finalScore ?? null,
+  questions: (raw.questions ?? []).map((question) => ({
+    questionId: question.questionId ?? 0,
+    questionText: question.questionText ?? "",
+    questionImage: question.questionImage ?? null,
+    selectedChoiceId: question.selectedChoiceId ?? null,
+    isCorrect: (question.choices ?? []).some((choice) => {
+      const choiceId = choice.choiceId ?? choice.id ?? 0;
+      return Boolean(choice.isCorrect) && choiceId === (question.selectedChoiceId ?? null);
+    }),
+    choices: (question.choices ?? []).map((choice) => {
+      const choiceId = choice.choiceId ?? choice.id ?? 0;
+      return {
+        id: choiceId,
+        text: choice.choiceText ?? choice.text ?? "",
+        isCorrect: Boolean(choice.isCorrect),
+      };
+    }),
+  })),
+};
 }
 
 // =============================================================================

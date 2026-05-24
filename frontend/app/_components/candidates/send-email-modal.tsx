@@ -297,9 +297,13 @@ function SingleSendEmailModal({
       <div className="relative z-10 mx-auto w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-lg lg:max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
         <div>
           <h2 className="text-base font-bold text-gray-900">Send exam email</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            to <strong>{candidate.firstName} {candidate.lastName}</strong>
-          </p>
+<p className="mt-1 text-sm text-gray-600">
+  to{" "}
+  <strong>
+    {`${candidate.firstName ?? ""} ${candidate.lastName ?? ""}`.trim() ||
+      candidate.email}
+  </strong>
+</p>
         </div>
 
         <ExamsPickerBlock

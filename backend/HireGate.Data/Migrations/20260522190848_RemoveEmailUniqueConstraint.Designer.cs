@@ -3,16 +3,19 @@ using System;
 using HireGate.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace HireGate.Data.Migrations
+namespace HireGate.Data.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522190848_RemoveEmailUniqueConstraint")]
+    partial class RemoveEmailUniqueConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -169,30 +172,6 @@ namespace HireGate.Data.Migrations
                     b.ToTable("candidate_answers", (string)null);
                 });
 
-            modelBuilder.Entity("HireGate.Data.Models.CandidateExamQuestion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    b.Property<int>("CandidateId")
-                        .HasColumnType("int")
-                        .HasColumnName("candidate_id");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int")
-                        .HasColumnName("question_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CandidateId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("candidate_exam_questions", (string)null);
-                });
-
             modelBuilder.Entity("HireGate.Data.Models.Choice", b =>
                 {
                     b.Property<int>("Id")
@@ -233,13 +212,6 @@ namespace HireGate.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("duration_minutes");
 
-                    b.Property<string>("Mode")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("static")
-                        .HasColumnName("mode");
-
                     b.Property<string>("PositionTitle")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)")
@@ -264,10 +236,7 @@ namespace HireGate.Data.Migrations
                     b.HasIndex("PositionTitle")
                         .HasDatabaseName("IX_Exams_PositionTitle");
 
-                    b.ToTable("exams", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_exams_mode", "mode IN ('static', 'dynamic', 'hybrid')");
-                        });
+                    b.ToTable("exams", (string)null);
                 });
 
             modelBuilder.Entity("HireGate.Data.Models.ExamQuestion", b =>
@@ -285,34 +254,6 @@ namespace HireGate.Data.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("exam_questions", (string)null);
-                });
-
-            modelBuilder.Entity("HireGate.Data.Models.ExamTopicRule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int")
-                        .HasColumnName("exam_id");
-
-                    b.Property<int>("QuestionCount")
-                        .HasColumnType("int")
-                        .HasColumnName("question_count");
-
-                    b.Property<int>("TopicId")
-                        .HasColumnType("int")
-                        .HasColumnName("topic_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExamId");
-
-                    b.HasIndex("TopicId");
-
-                    b.ToTable("exam_topic_rules", (string)null);
                 });
 
             modelBuilder.Entity("HireGate.Data.Models.Question", b =>
@@ -413,25 +354,6 @@ namespace HireGate.Data.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("HireGate.Data.Models.CandidateExamQuestion", b =>
-                {
-                    b.HasOne("HireGate.Data.Models.Candidate", "Candidate")
-                        .WithMany("CandidateExamQuestions")
-                        .HasForeignKey("CandidateId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HireGate.Data.Models.Question", "Question")
-                        .WithMany("CandidateExamQuestions")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Candidate");
-
-                    b.Navigation("Question");
-                });
-
             modelBuilder.Entity("HireGate.Data.Models.Choice", b =>
                 {
                     b.HasOne("HireGate.Data.Models.Question", "Question")
@@ -462,25 +384,6 @@ namespace HireGate.Data.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("HireGate.Data.Models.ExamTopicRule", b =>
-                {
-                    b.HasOne("HireGate.Data.Models.Exam", "Exam")
-                        .WithMany("TopicRules")
-                        .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HireGate.Data.Models.Topic", "Topic")
-                        .WithMany("ExamTopicRules")
-                        .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Exam");
-
-                    b.Navigation("Topic");
-                });
-
             modelBuilder.Entity("HireGate.Data.Models.Question", b =>
                 {
                     b.HasOne("HireGate.Data.Models.Topic", "Topic")
@@ -494,8 +397,6 @@ namespace HireGate.Data.Migrations
             modelBuilder.Entity("HireGate.Data.Models.Candidate", b =>
                 {
                     b.Navigation("Answers");
-
-                    b.Navigation("CandidateExamQuestions");
                 });
 
             modelBuilder.Entity("HireGate.Data.Models.Exam", b =>
@@ -503,14 +404,10 @@ namespace HireGate.Data.Migrations
                     b.Navigation("Candidates");
 
                     b.Navigation("ExamQuestions");
-
-                    b.Navigation("TopicRules");
                 });
 
             modelBuilder.Entity("HireGate.Data.Models.Question", b =>
                 {
-                    b.Navigation("CandidateExamQuestions");
-
                     b.Navigation("Choices");
 
                     b.Navigation("ExamQuestions");
@@ -518,8 +415,6 @@ namespace HireGate.Data.Migrations
 
             modelBuilder.Entity("HireGate.Data.Models.Topic", b =>
                 {
-                    b.Navigation("ExamTopicRules");
-
                     b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618

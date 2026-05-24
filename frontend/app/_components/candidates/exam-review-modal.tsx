@@ -20,9 +20,10 @@ type Question = {
 
 type ExamReview = {
   candidateId: number;
-  candidateName: string;
+  candidateName?: string;
+  candidateEmail: string;
   finalScore: number;
-  examName?: string;
+  examTitle?: string;
   questions: Question[];
 };
 
@@ -40,7 +41,11 @@ export default function ExamReviewModal({
   useDisableBodyScroll(data !== null);
   //console.log("ExamReviewModal data:", data);
   if (!data) return null;
-
+const displayCandidate =
+  data.candidateName?.trim()
+    ? data.candidateName
+    : data.candidateEmail;
+  
   const getChoiceClass = (choice: Choice, selectedId: number | null) => {
     const isSelected = choice.id === selectedId;
 
@@ -68,10 +73,19 @@ export default function ExamReviewModal({
               Exam Review
             </h2>
 
-            <div className="text-sm text-slate-500 space-y-1">
-              <div>Candidate Name: {data.candidateName}</div>
-              <div>Score: {data.finalScore}</div>
-            </div>
+<div className="text-sm text-slate-500 space-y-1">
+  <div>
+    Candidate: <strong>{displayCandidate}</strong>
+  </div>
+
+  <div>
+    Exam: <strong>{data.examTitle}</strong>
+  </div>
+
+  <div>
+    Score: <strong>{data.finalScore}</strong>
+  </div>
+</div>
           </div>
 
           <button

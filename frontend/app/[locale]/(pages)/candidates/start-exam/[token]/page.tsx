@@ -1,74 +1,95 @@
 "use client";
-import { Clock } from "lucide-react";
 
+import { Clock } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { startExam, submitExam } from "@/app/_services/candidate-exam-service";
-
 import { handleExamError } from "@/app/_utils/exam-error-handler";
 
 export default function StartExamPage() {
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    return [...array].sort(() => Math.random() - 0.5);
-  };
-
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
 
   const [exam, setExam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const [timeLeft, setTimeLeft] = useState<number>(0);
-
-  const STORAGE_KEY = `exam_answers_${token}`;
-
-  const [answers, setAnswers] = useState<Record<number, number>>(() => {
-    if (typeof window === "undefined") return {};
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : {};
-  });
-
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [warning, setWarning] = useState("");
 
-  const answeredCount = Object.keys(answers).length;
-  const totalQuestions = exam?.questions?.length || 0;
+  const STORAGE_KEY = `exam_answers_${token}`;
 
-  const progressPercent =
-    totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+  // ---------------- LOAD SAVED ANSWERS ----------------
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) setAnswers(JSON.parse(saved));
+  }, []);
 
-  const formatTime = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
+  // ---------------- FETCH EXAM ----------------
+  useEffect(() => {
+    const fetchExam = async () => {
+      try {
+        const res = await startExam(token);
 
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
+        if (!res || res.success === false || !res.data) {
+          throw new Error(res?.message || "Exam not available");
+        }
 
-    return `${h.toString().padStart(2, "0")}:${m
-      .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+        setExam(res.data);
+      } catch (err: any) {
+        const handled = handleExamError(err, router);
+        if (handled) return;
 
-  const handleSelect = (questionId: number, choiceId: number) => {
+        setWarning("Failed to load exam.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExam();
+  }, [token]);
+
+  // ---------------- TIMER ----------------
+  useEffect(() => {
+    if (!exam?.startedAt || !exam?.durationMinutes) return;
+
+    const start = new Date(exam.startedAt).getTime();
+    const end = start + exam.durationMinutes * 60 * 1000;
+
+    const interval = setInterval(() => {
+      const diff = end - Date.now();
+
+      setTimeLeft(diff > 0 ? diff : 0);
+
+      if (diff <= 0 && !submitted) {
+        handleSubmit(true);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [exam, submitted]);
+
+  // ---------------- SELECT ANSWER ----------------
+  const handleSelect = (qId: number, cId: number) => {
     if (submitted) return;
 
-    setAnswers((prev) => {
-      const updated = { ...prev, [questionId]: choiceId };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
-    });
+    const updated = { ...answers, [qId]: cId };
+    setAnswers(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   };
 
-  // ⭐ UPDATED BEST PRACTICE FIX
-  const handleSubmit = async (isAuto = false) => {
+  // ---------------- SUBMIT ----------------
+  const handleSubmit = async (auto = false) => {
     if (submitted || submitting) return;
-    setWarning("");
+
     try {
       setSubmitting(true);
+      setWarning("");
 
       const payload = {
         answers: Object.entries(answers).map(([qId, cId]) => ({
@@ -84,191 +105,103 @@ export default function StartExamPage() {
 
       router.push("/candidates/thank-you");
     } catch (err: any) {
-      setWarning(err.message ?? "Submit failed");
+      const handled = handleExamError(err, router);
+      if (handled) return;
+
+      setWarning(err?.message || "Submit failed");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ---------------- FETCH EXAM ----------------
-  
-useEffect(() => {
-  const fetchExam = async () => {
-    try {
-const res = await startExam(token);
+  // ---------------- LOADING ----------------
+  if (loading) {
+    return <div className="p-10 text-center">Loading exam...</div>;
+  }
 
-// handle backend failure shape safely
-if (!res || res.success === false || !res.data) {
-  throw new Error(res?.message || "Exam not available");
-}
+  if (!exam) return null;
 
-const data = res.data;
-      if (!data) throw new Error("No exam data received");
+  const formatTime = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
 
-      const shuffledQuestions = shuffleArray(data.questions || []).map(
-        (q: any) => ({
-          ...q,
-          choices: shuffleArray(q.choices || []),
-        })
-      );
-
-      setExam({
-        ...data,
-        questions: shuffledQuestions,
-      });
-    } 
-
-catch (err: any) {
-  const handled = handleExamError(err, router);
-
-  if (handled) return;
-
-  setError("Failed to load exam.");
-}
-    finally {
-      setLoading(false);
-    }
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
-  fetchExam();
-}, [token]);
-
-useEffect(() => {
-  if (error) {
-    router.replace("/candidates/thank-you");
-  }
-}, [error, router]);
-
-  // ---------------- TIMER + AUTO SUBMIT ----------------
-  useEffect(() => {
-    if (!exam) return;
-
-    //const startedAt = new Date(exam.startedAt).getTime();
-    //const durationMs = exam.durationMinutes * 60 * 1000;
-    if (!exam?.startedAt || !exam?.durationMinutes) return;
-    const startedAt = new Date(exam.startedAt).getTime();
-const durationMs = exam.durationMinutes * 60 * 1000;
-    const endTime = startedAt + durationMs;
-
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const diff = endTime - now;
-
-      setTimeLeft(diff > 0 ? diff : 0);
-
-      if (diff <= 0) {
-        clearInterval(interval);
-        handleSubmit(true); 
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [exam]);
-
-  // ---------------- GUARDS ----------------
-  if (loading)
-    return <div className="p-10 text-center">Loading exam...</div>;
-
-
-  // ---------------- UI ----------------
+  const answeredCount = Object.keys(answers).length;
+  const totalQuestions = exam.questions?.length || 0;
+  const progress = totalQuestions ? (answeredCount / totalQuestions) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-slate-100 p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl p-8 shadow">
 
-        <div className="flex justify-center mb-6">
-          <img src="/images/logo.png" alt="logo" className="h-10 w-auto" />
-        </div>
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">
+            {exam.positionTitle || "Exam"}
+          </h1>
 
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            {/*<h1 className="text-3xl font-bold">{exam.positionTitle}</h1>*/}
-            {exam &&( <>
-            <h1 className="text-3xl font-bold">
-              {typeof exam?.positionTitle === "string"
-                ? exam.positionTitle
-                : "Exam"}
-            </h1>
-            <div className="text-slate-600 text-base space-y-1">
-              <p>Duration: {exam.durationMinutes} minutes</p>
-              <p>{exam.questions?.length || 0} Questions</p>
-            </div>
-            </>)}
-          </div>
-
-          <div className="flex items-center gap-2 text-red-600 font-bold text-lg">
+          <div className="flex items-center gap-2 text-red-600 font-bold">
             <Clock size={18} />
             {formatTime(timeLeft)}
           </div>
         </div>
 
+        {/* PROGRESS */}
         <div className="mb-6">
-          <div className="flex justify-between text-sm text-slate-600 mb-1">
-            <span>
-              Answered: {answeredCount} / {totalQuestions}
-            </span>
-            <span>{Math.round(progressPercent)}%</span>
-          </div>
+          <p className="text-sm mb-1">
+            {answeredCount}/{totalQuestions} answered
+          </p>
 
-          <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+          <div className="h-3 bg-slate-200 rounded">
             <div
               className="h-full bg-blue-600"
-              style={{ width: `${progressPercent}%` }}
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        {warning && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
-            {warning}
-          </div>
-        )}
+        {/* QUESTIONS */}
+        {exam.questions?.map((q: any, i: number) => (
+          <div key={q.id} className="mb-6 border p-4 rounded-lg">
+            <p className="font-semibold mb-3">
+              Q{i + 1}. {q.questionText}
+            </p>
 
-        {Array.isArray(exam?.questions) &&
-        exam.questions.map((q: any, index: number) => (
-          <div key={q.id} className="mb-8 border border-slate-300 rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Q{index + 1}. {typeof q.questionText === "string" ? q.questionText : ""}
-            </h2>
-            {q.questionImage && (
-              <div className="mb-4 flex justify-center">
-                <img
-                  src={q.questionImage}
-                  alt={`Question ${index + 1} image`}
-                  className="max-h-64 object-contain rounded shadow"
-                />
-              </div>
-            )}
-            <div className="space-y-3">
-              {Array.isArray(q.choices) &&
-              q.choices.map((c: any) => (
-                <button
-                  key={c.id}
-                  onClick={() => handleSelect(q.id, c.id)}
-                  disabled={submitted}
-                  className={`w-full border rounded-lg p-3 text-left transition ${
-                    answers[q.id] === c.id
-                      ? "bg-slate-100 border-slate-300 text-black"
-                      : "bg-white hover:bg-slate-50 border border-slate-200"
-                  }`}
-                >
-                  {typeof c.text === "string" ? c.text : ""}
-                </button>
-              ))}
-            </div>
+            {q.choices?.map((c: any) => (
+              <button
+                key={c.id}
+                onClick={() => handleSelect(q.id, c.id)}
+                disabled={submitted}
+                className={`w-full text-left p-3 border rounded mb-2 ${
+                  answers[q.id] === c.id
+                    ? "bg-slate-100"
+                    : "bg-white hover:bg-slate-50"
+                }`}
+              >
+                {c.text}
+              </button>
+            ))}
           </div>
         ))}
 
+        {/* WARNING */}
+        {warning && (
+          <div className="mb-4 text-red-600">{warning}</div>
+        )}
+
+        {/* SUBMIT */}
         <button
           onClick={() => handleSubmit(false)}
           disabled={submitting || submitted}
-          className="w-full bg-green-600 text-white py-4 rounded-xl font-semibold"
+          className="w-full bg-green-600 text-white py-3 rounded-lg"
         >
-          {submitted
-            ? "Submitted"
-            : submitting
-            ? "Submitting..."
-            : "Submit Exam"}
+          {submitted ? "Submitted" : submitting ? "Submitting..." : "Submit"}
         </button>
       </div>
     </div>

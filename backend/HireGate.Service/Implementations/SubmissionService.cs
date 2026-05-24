@@ -47,7 +47,7 @@ namespace HireGate.Service.Implementations
 
             candidate.SubmittedAt = now;
             candidate.FinalScore = score;
-            candidate.Token = null;
+            //candidate.Token = null;
 
             _submissionRepository.UpdateCandidate(candidate);
             await _submissionRepository.SaveAsync();

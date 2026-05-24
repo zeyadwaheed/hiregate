@@ -30,7 +30,7 @@ public class CandidateConfiguration : IEntityTypeConfiguration<Candidate>
             .HasForeignKey(q => q.ExamId)    
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasIndex(c => c.Email).IsUnique().HasDatabaseName("UX_Candidates_Email");
+        builder.HasIndex(c => c.Email).HasDatabaseName("UX_Candidates_Email");
         builder.HasIndex(c => c.Token).IsUnique().HasDatabaseName("UX_Candidates_Token");
     }
 }
