@@ -20,6 +20,11 @@ public interface ICandidateRepository
     Task<Candidate?> GetByTokenWithExam(string token);
     // With Exam, ExamQuestions, Question, Choices, Answers
     Task<Candidate?> GetByTokenWithExamAndQuestions(string token);
+    Task<Candidate?> GetByTokenWithExamAndTopicRules(string token);
+    Task<List<Question>> GetCandidateExamQuestions(int candidateId);
+    Task<List<Question>> GetExamQuestions(int examId);
+    Task<List<Question>> GetQuestionsByTopic(int topicId);
+    Task AddCandidateExamQuestions(int candidateId, IEnumerable<int> questionIds);
     Task AssignExam(int candidateId, int examId);
     Task<Candidate?> GetCandidateWithExam(int candidateId);
 }

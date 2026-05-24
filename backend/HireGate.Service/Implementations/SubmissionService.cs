@@ -38,10 +38,12 @@ namespace HireGate.Service.Implementations
                 throw new InvalidOperationException("Candidate has no exam assigned");
 
             int examId = candidate.ExamId.Value;
-            var examQuestions = await _submissionRepository.GetQuestionsAsync(examId);
-            var examQuestionIds = examQuestions.Select(q => q.Id).ToHashSet();
+            var candidateQuestionIds = await _submissionRepository.GetCandidateQuestionIdsAsync(candidate.Id);
 
-            var (candidateAnswers, score) = BuildCandidateAnswers(dto.Answers, examQuestionIds, choices, candidate.Id, examId);
+            if (candidateQuestionIds.Count == 0)
+                throw new InvalidOperationException("Exam has not been started for this candidate.");
+
+            var (candidateAnswers, score) = BuildCandidateAnswers(dto.Answers, candidateQuestionIds, choices, candidate.Id, examId);
 
             _submissionRepository.AddCandidateAnswers(candidateAnswers);
 
@@ -113,7 +115,7 @@ namespace HireGate.Service.Implementations
         }
 
         private (List<CandidateAnswer> Answers, int Score) BuildCandidateAnswers(IEnumerable<DTOs.QuestionAnswerDto> answers,
-            HashSet<int> examQuestionIds,
+            HashSet<int> candidateQuestionIds,
             IDictionary<int, Data.Models.Choice> choices,
             int candidateId,
             int examId)
@@ -123,9 +125,9 @@ namespace HireGate.Service.Implementations
 
             foreach (var a in answers)
             {
-                if (!examQuestionIds.Contains(a.QuestionId))
+                if (!candidateQuestionIds.Contains(a.QuestionId))
                 {
-                    throw new InvalidOperationException($"Question with id {a.QuestionId} not found in the exam.");
+                    throw new InvalidOperationException($"Question with id {a.QuestionId} was not assigned to this candidate.");
                 }
 
                 if (!choices.TryGetValue(a.ChoiceId, out var choice))

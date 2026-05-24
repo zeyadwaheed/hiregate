@@ -17,6 +17,9 @@ public class CandidateExamQuestionConfiguration : IEntityTypeConfiguration<Candi
 
         builder.HasIndex(candidateQuestion => candidateQuestion.CandidateId);
         builder.HasIndex(candidateQuestion => candidateQuestion.QuestionId);
+        builder.HasIndex(candidateQuestion => new { candidateQuestion.CandidateId, candidateQuestion.QuestionId })
+            .IsUnique()
+            .HasDatabaseName("UX_candidate_exam_questions_candidate_question");
 
         builder.HasOne(candidateQuestion => candidateQuestion.Candidate)
             .WithMany(candidate => candidate.CandidateExamQuestions)

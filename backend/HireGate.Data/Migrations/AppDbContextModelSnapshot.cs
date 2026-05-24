@@ -188,6 +188,10 @@ namespace HireGate.Data.Migrations
 
                     b.HasIndex("CandidateId");
 
+                    b.HasIndex("CandidateId", "QuestionId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_candidate_exam_questions_candidate_question");
+
                     b.HasIndex("QuestionId");
 
                     b.ToTable("candidate_exam_questions", (string)null);

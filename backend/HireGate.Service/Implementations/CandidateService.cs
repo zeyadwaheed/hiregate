@@ -338,7 +338,7 @@ if (candidate.StartedAt != null)
 
 public async Task<ServiceResult<StartExamResponseDto>> StartExam(string token)
 {
-    var candidate = await _repo.GetByTokenWithExamAndQuestions(token);
+    var candidate = await _repo.GetByTokenWithExamAndTopicRules(token);
 
     if (candidate == null || candidate.Exam == null)
         return ServiceResult<StartExamResponseDto>.Fail("Invalid token");
@@ -372,6 +372,24 @@ public async Task<ServiceResult<StartExamResponseDto>> StartExam(string token)
     if (now > endTime)
         return ServiceResult<StartExamResponseDto>.Fail("Your exam time has finished");
 
+    var questions = await _repo.GetCandidateExamQuestions(candidate.Id);
+
+    if (questions.Count == 0)
+    {
+        questions = await GenerateExamQuestions(exam);
+        questions = questions
+            .DistinctBy(question => question.Id)
+            .ToList();
+
+        Shuffle(questions);
+
+        if (questions.Count == 0)
+            return ServiceResult<StartExamResponseDto>.Fail("No questions found for this exam");
+
+        await _repo.AddCandidateExamQuestions(candidate.Id, questions.Select(question => question.Id));
+        questions = await _repo.GetCandidateExamQuestions(candidate.Id);
+    }
+
     var dto = new StartExamResponseDto
     {
         StartedAt = startTime,
@@ -379,18 +397,7 @@ public async Task<ServiceResult<StartExamResponseDto>> StartExam(string token)
         PositionTitle = exam.PositionTitle,
         DurationMinutes = exam.DurationMinutes,
 
-        Questions = exam.ExamQuestions.Select(q => new ExamQuestionDto
-        {
-            Id = q.Question.Id,
-            QuestionText = q.Question.QuestionText,
-            QuestionImage = q.Question.QuestionImage,
-
-            Choices = q.Question.Choices.Select(c => new ExamChoiceDto
-            {
-                Id = c.Id,
-                Text = c.ChoiceText
-            }).ToList()
-        }).ToList()
+        Questions = MapQuestions(questions)
     };
 
     return ServiceResult<StartExamResponseDto>.Ok(dto);
@@ -405,11 +412,10 @@ public async Task<ServiceResult<ExamReviewDto?>> GetExamReview(int candidateId)
         return ServiceResult<ExamReviewDto?>.Fail("Exam not found");
 
     var answers = candidate.Answers ?? new List<CandidateAnswer>();
+    var assignedQuestions = await _repo.GetCandidateExamQuestions(candidate.Id);
 
-    var questions = candidate.Exam.ExamQuestions.Select(eq =>
+    var questions = assignedQuestions.Select(question =>
     {
-        var question = eq.Question;
-
         var answer = answers.FirstOrDefault(a => a.QuestionId == question.Id);
 
         var selectedChoiceId = answer?.ChoiceId;
@@ -468,6 +474,72 @@ private string GetWindowStatus(DateTime now, DateTime? start, DateTime? end)
         return "closed";
 
     return "open";
+}
+
+private async Task<List<Question>> GenerateExamQuestions(Exam exam)
+{
+    var questions = new List<Question>();
+    var selectedQuestionIds = new HashSet<int>();
+
+    if (exam.Mode is ExamMode.Static or ExamMode.Hybrid)
+    {
+        var staticQuestions = await _repo.GetExamQuestions(exam.Id);
+
+        foreach (var question in staticQuestions)
+        {
+            if (selectedQuestionIds.Add(question.Id))
+            {
+                questions.Add(question);
+            }
+        }
+    }
+
+    if (exam.Mode is ExamMode.Dynamic or ExamMode.Hybrid)
+    {
+        foreach (var rule in exam.TopicRules)
+        {
+            var topicQuestions = (await _repo.GetQuestionsByTopic(rule.TopicId))
+                .Where(question => !selectedQuestionIds.Contains(question.Id))
+                .ToList();
+
+            Shuffle(topicQuestions);
+
+            foreach (var question in topicQuestions.Take(rule.QuestionCount))
+            {
+                if (selectedQuestionIds.Add(question.Id))
+                {
+                    questions.Add(question);
+                }
+            }
+        }
+    }
+
+    return questions;
+}
+
+private static List<ExamQuestionDto> MapQuestions(IEnumerable<Question> questions)
+{
+    return questions.Select(question => new ExamQuestionDto
+    {
+        Id = question.Id,
+        QuestionText = question.QuestionText,
+        QuestionImage = question.QuestionImage,
+
+        Choices = question.Choices.Select(choice => new ExamChoiceDto
+        {
+            Id = choice.Id,
+            Text = choice.ChoiceText
+        }).ToList()
+    }).ToList();
+}
+
+private static void Shuffle<T>(IList<T> items)
+{
+    for (var i = items.Count - 1; i > 0; i--)
+    {
+        var j = Random.Shared.Next(i + 1);
+        (items[i], items[j]) = (items[j], items[i]);
+    }
 }
 }
 }

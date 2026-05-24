@@ -35,6 +35,14 @@ namespace HireGate.Repository.Implementations
                 .ToListAsync();
         }
 
+        public async Task<HashSet<int>> GetCandidateQuestionIdsAsync(int candidateId)
+        {
+            return await _context.CandidateExamQuestions
+                .Where(candidateQuestion => candidateQuestion.CandidateId == candidateId)
+                .Select(candidateQuestion => candidateQuestion.QuestionId)
+                .ToHashSetAsync();
+        }
+
         public async Task<Exam?> GetExamByIdAsync(int examId)
         {
             return await _context.Exams
