@@ -23,7 +23,7 @@ export default function ExamPage() {
         const exam = await getExamPageData(token);
         const data = exam?.data;
 
-        // 🚨 SUBMITTED USERS → redirect immediately
+        // SUBMITTED USERS → redirect immediately
         if (data?.windowStatus === "submitted") {
           router.replace("/candidates/thank-you");
           return;
@@ -78,26 +78,77 @@ export default function ExamPage() {
   const start = new Date(examData.windowStartTime);
   const end = new Date(examData.windowEndTime);
 
-  // ---------------- TIMER ----------------
-  const getTimeLeft = (target: Date) => {
-    const diff = target.getTime() - now.getTime();
 
-    if (diff <= 0) return "00:00:00";
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+// ---------------- TIMER ----------------
 
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
+const getTimeLeft = (target: Date) => {
+  const diff = target.getTime() - now.getTime();
 
-  let timerValue = "00:00:00";
+  if (diff <= 0) return "00:00:00 ";
 
-  if (isUpcoming) timerValue = getTimeLeft(start);
-  else if (isOpen) timerValue = getTimeLeft(end);
-  else if (isClosed) timerValue = "00:00:00";
+  const totalSeconds = Math.floor(diff / 1000);
+
+  const days = Math.floor(totalSeconds / (3600 * 24));
+  const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const timePart = `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+  if (days >= 1) {
+    return `${days} day${days > 1 ? "s" : ""} ${timePart} `;
+  }
+
+  return `${timePart} `;
+};
+
+const formatTimeLeft = (diffMs: number) => {
+  if (diffMs <= 0) return "0 seconds";
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+
+  const days = Math.floor(totalSeconds / (3600 * 24));
+  const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // 24h or more → days format
+  if (days >= 1) {
+    if (hours > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ${hours} hour${hours > 1 ? "s" : ""}`;
+    }
+    return `${days} day${days > 1 ? "s" : ""}`;
+  }
+
+  // less than 24h → human format
+  if (hours > 0) {
+    if (minutes > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ${minutes} minute${minutes > 1 ? "s" : ""}`;
+    }
+    return `${hours} hour${hours > 1 ? "s" : ""}`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  }
+
+  return `${seconds} second${seconds !== 1 ? "s" : ""}`;
+};
+
+// ---------------- TIMER SOURCE ----------------
+
+let timerValue = "00:00:00";
+
+if (isUpcoming) {
+  timerValue = getTimeLeft(start);   // countdown until exam opens
+} else if (isOpen) {
+  timerValue = getTimeLeft(end);     // countdown until exam closes
+} else {
+  timerValue = "00:00:00";
+}
 
   // ---------------- START EXAM ----------------
   const handleStartExam = () => {
@@ -115,13 +166,32 @@ export default function ExamPage() {
         </div>
 
         {/* TIMER */}
-        <div
-          className={`text-center font-bold text-lg mb-4 ${
-            isOpen ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {timerValue}
-        </div>
+<div>
+  The exam status is{" "}
+  <span className="font-semibold">
+    {isOpen ? "open" : isUpcoming ? "upcoming" : "closed"}
+  </span>
+  {isOpen && (
+    <>
+      {" "}
+      and will close in{" "}
+      <span className="font-semibold text-green-600">
+        {timerValue}
+      </span>
+
+    </>
+  )}
+  {isUpcoming && (
+    <>
+     {" "}
+     and will open in  {" "}
+      <span className="font-semibold text-red-600">
+        {timerValue}
+      </span>
+
+</>
+)}
+</div>
 
         {/* TITLE */}
         <div className="mb-6 text-left">
@@ -157,14 +227,27 @@ export default function ExamPage() {
               • {examData?.questionCount ?? "—"} MCQ Questions
             </div>
 
-            <div>
-              <span className="font-medium">Status:</span>
-              <br />
-              • {windowStatus}
-            </div>
-
           </div>
+          <br />
+            {/* Guidelines */}
+            <div>
+          
+          <div className="text-sm text-gray-600 leading-6 space-y-4">
+          <span className="font-medium">Exam guidelines:</span>
+          <br/>
+              • You can start the exam whenever you are ready within the allowed period
+              <br />
+              • Please ensure stable internet connection throughout the exam
+              <br />
+              • Once submitted, the exam cannot be retaken
+              <br />
+              • For support: support@eozom.com
+            </div>
+            </div>
+                
+
         </div>
+        
 
         {/* BUTTON */}
         <button
