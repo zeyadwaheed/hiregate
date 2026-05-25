@@ -34,7 +34,7 @@ export function handleExamError(err: any, router: Router) {
   }
 
   if (isInvalidToken || isNotFound) {
-    router.replace("/error");
+    router.replace("/candidates/error");
     return true;
   }
 
