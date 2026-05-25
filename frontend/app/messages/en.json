@@ -67,7 +67,9 @@
         "selected": "Selected:",
         "back": "Back",
         "selected-count": "selected",
-        "creating": "Creating..."
+        "creating": "Creating...",
+        "select-all-visible" : "Select All",
+        "deselect-all-visible": "Deselect All"
         },
      "candidates-view": 
         {

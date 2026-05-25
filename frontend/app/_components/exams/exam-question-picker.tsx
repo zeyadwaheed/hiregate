@@ -189,6 +189,35 @@ export default function ExamQuestionPicker({
             </div>
           ) : (
             <>
+
+              <div className="flex gap-2 justify-end mb-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const visibleIds = questions.map(q => q.id);
+                    const next = Array.from(new Set([...selectedQuestionIds, ...visibleIds]));
+                    onChange(next);
+                  }}
+                  disabled={questions.length === 0 || questions.every(q => selectedQuestionIds.includes(q.id))}
+                >
+                  {t("select-all-visible") || "Select All"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const visibleIds = questions.map(q => q.id);
+                    const next = selectedQuestionIds.filter(id => !visibleIds.includes(id));
+                    onChange(next);
+                  }}
+                  disabled={questions.length === 0 || !questions.some(q => selectedQuestionIds.includes(q.id))}
+                >
+                  {t("deselect-all-visible") || "Deselect All"}
+                </Button>
+              </div>
               <div className="space-y-3">
                 {questions.map((question) => (
                   <label

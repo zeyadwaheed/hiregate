@@ -298,11 +298,14 @@ function CreateExamModal({ isOpen, onClose }: CreateExamModalProps) {
             </div>
           ) : (
             <div className="space-y-6">
+
               {usesQuestions(examMode) ? (
-                <ExamQuestionPicker
-                  selectedQuestionIds={selectedQuestionIds}
-                  onChange={handleQuestionSelectionChange}
-                />
+                <>
+                  <ExamQuestionPicker
+                    selectedQuestionIds={selectedQuestionIds}
+                    onChange={handleQuestionSelectionChange}
+                  />
+                </>
               ) : null}
 
               {usesTopicRules(examMode) ? (

@@ -27,7 +27,7 @@ export function AddTopicModal({
   onSubmit,
   onTopicNameChange,
 }: AddTopicModalProps) {
-  const t = useTranslations("Add-topics");
+ /// const t = useTranslations("Add-topics");
 
   useDisableBodyScroll(isOpen);
 
@@ -40,7 +40,7 @@ export function AddTopicModal({
       <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl border border-gray-200" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-900">
-            {isEditing ? "Edit Topic" : t("add-topic")}
+            {isEditing ? "Edit Topic" : "Add Topic"}
           </h3>
           <button
             onClick={() => { restoreBodyScroll(); onClose(); }}
@@ -53,7 +53,7 @@ export function AddTopicModal({
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t("topic-name")}</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Topic Name</label>
             <input
               type="text"
               value={topicName}
@@ -77,7 +77,7 @@ export function AddTopicModal({
               onClick={() => { restoreBodyScroll(); onClose(); }}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
             >
-              {t("cancel")}
+              Cancel
             </button>
             <button
               type="submit"
@@ -85,7 +85,7 @@ export function AddTopicModal({
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400 flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading && <Loader size={16} className="animate-spin" />}
-              {isEditing ? "Save Topic" : t("add")}
+              {isEditing ? "Save Topic" : "Add Topic"}
             </button>
           </div>
         </form>
