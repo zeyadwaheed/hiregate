@@ -71,6 +71,8 @@ export function useCandidates() {
 
   const [statusFilter, setStatusFilter] = useState("All");
 
+  const [examFilter, setExamFilter] = useState<number | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   // EMAIL
@@ -94,7 +96,8 @@ export function useCandidates() {
         const result = await getCandidatesPage(
           page,
           trimmed || undefined,
-          statusFilter === "All" ? undefined : statusFilter
+          statusFilter === "All" ? undefined : statusFilter,
+          examFilter ?? undefined
         );
 
         setCandidates(result.data.items);
@@ -114,7 +117,7 @@ export function useCandidates() {
         setLoading(false);
       }
     },
-    [search, statusFilter]
+    [search, statusFilter, examFilter]
   );
 
   useEffect(() => {
@@ -228,6 +231,9 @@ export function useCandidates() {
 
     statusFilter,
     setStatusFilter,
+
+    examFilter,
+    setExamFilter,
 
     currentPage,
     setCurrentPage,

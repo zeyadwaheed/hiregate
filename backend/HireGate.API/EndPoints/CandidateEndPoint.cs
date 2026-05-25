@@ -61,10 +61,11 @@ public static class CandidateEndpoints
             int page = 1,
             int pageSize = 10,
             string? search = null,
-            string? status = null
+            string? status = null,
+            int? examId = null
         ) =>
         {
-            var result = await service.GetAll(page, pageSize, search, status);
+            var result = await service.GetAll(page, pageSize, search, status, examId);
 
             return ApiResponseMapper.ToHttpResult(result);
         });

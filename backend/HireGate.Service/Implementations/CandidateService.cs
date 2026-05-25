@@ -4,10 +4,12 @@ using HireGate.Service.DTOs;
 using HireGate.Data.Models;
 using System.Security.Principal;
 using HireGate.ResultWrapper;
+using System.Collections.Concurrent;
 namespace HireGate.Service.Implementations
 {
 public class CandidateService : ICandidateService
 {
+    private static readonly ConcurrentDictionary<int, SemaphoreSlim> CandidateStartLocks = new();
     private readonly ICandidateRepository _repo;
     private readonly IEmailService _email;
     private readonly IExamRepository _examRepo;
@@ -49,11 +51,11 @@ public async Task<ServiceResult<CandidateResponseDto?>> GetById(int id)
 }
 
 // get all
-public async Task<ServiceResult<PagedResult<CandidateResponseDto>>> GetAll(int page, int pageSize, string? search, string? status)
+public async Task<ServiceResult<PagedResult<CandidateResponseDto>>> GetAll(int page, int pageSize, string? search, string? status, int? examId)
 {
     var validPage = Math.Max(1, page);
     var validPageSize = Math.Min(Math.Max(1, pageSize), 100);
-    var (candidates, totalCount) = await _repo.GetAll(validPage, validPageSize, search, status);
+    var (candidates, totalCount) = await _repo.GetAll(validPage, validPageSize, search, status, examId);
 
     var data = candidates.Select(c => new CandidateResponseDto
     {
@@ -136,6 +138,7 @@ public async Task<ServiceResult<bool>> SendExamEmail(SendExamEmailDto dto)
     candidate.SubmittedAt = null; // reset submittedAt when re-assigning exam
     candidate.FinalScore = null; // reset finalScore when re-assigning exam
     candidate.ExamId = dto.ExamId;
+    await _repo.ClearCandidateExamState(candidate.Id);
 
     // 2. GUARANTEE token exists
     if (string.IsNullOrEmpty(candidate.Token))
@@ -186,6 +189,7 @@ public async Task<ServiceResult<BulkEmailResultDto>>  SendBulkExamEmail(SendBulk
         candidate.SubmittedAt = null; // reset submittedAt when re-assigning exam
         candidate.FinalScore = null; // reset finalScore when re-assigning exam
         candidate.ExamId = dto.ExamId;
+        await _repo.ClearCandidateExamState(candidate.Id);
         
 
         if (string.IsNullOrEmpty(candidate.Token))
@@ -372,22 +376,33 @@ public async Task<ServiceResult<StartExamResponseDto>> StartExam(string token)
     if (now > endTime)
         return ServiceResult<StartExamResponseDto>.Fail("Your exam time has finished");
 
-    var questions = await _repo.GetCandidateExamQuestions(candidate.Id);
+    var startLock = CandidateStartLocks.GetOrAdd(candidate.Id, _ => new SemaphoreSlim(1, 1));
+    await startLock.WaitAsync();
 
-    if (questions.Count == 0)
+    List<Question> questions;
+    try
     {
-        questions = await GenerateExamQuestions(exam);
-        questions = questions
-            .DistinctBy(question => question.Id)
-            .ToList();
-
-        Shuffle(questions);
+        questions = await _repo.GetCandidateExamQuestions(candidate.Id);
 
         if (questions.Count == 0)
-            return ServiceResult<StartExamResponseDto>.Fail("No questions found for this exam");
+        {
+            questions = await GenerateExamQuestions(exam);
+            questions = questions
+                .DistinctBy(question => question.Id)
+                .ToList();
 
-        await _repo.AddCandidateExamQuestions(candidate.Id, questions.Select(question => question.Id));
-        questions = await _repo.GetCandidateExamQuestions(candidate.Id);
+            Shuffle(questions);
+
+            if (questions.Count == 0)
+                return ServiceResult<StartExamResponseDto>.Fail("No questions found for this exam");
+
+            await _repo.AddCandidateExamQuestions(candidate.Id, questions.Select(question => question.Id));
+            questions = await _repo.GetCandidateExamQuestions(candidate.Id);
+        }
+    }
+    finally
+    {
+        startLock.Release();
     }
 
     var dto = new StartExamResponseDto

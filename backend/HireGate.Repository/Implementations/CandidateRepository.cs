@@ -12,7 +12,7 @@ public class CandidateRepository : ICandidateRepository
     }
 
 
-    public async Task<(List<Candidate> Items, int TotalCount)> GetAll(int page, int pageSize, string? search, string? status)
+    public async Task<(List<Candidate> Items, int TotalCount)> GetAll(int page, int pageSize, string? search, string? status, int? examId)
     {
         var query = _context.Candidates.AsQueryable();
 
@@ -35,6 +35,11 @@ public class CandidateRepository : ICandidateRepository
                 query = query.Where(c => c.StartedAt != null && c.SubmittedAt == null);
             else if (string.Equals(s, "Submitted", StringComparison.OrdinalIgnoreCase))
                 query = query.Where(c => c.SubmittedAt != null);
+        }
+
+        if (examId.HasValue)
+        {
+            query = query.Where(c => c.ExamId == examId.Value);
         }
 
         var totalCount = await query.CountAsync();
@@ -197,6 +202,17 @@ public class CandidateRepository : ICandidateRepository
                 entry.State = EntityState.Detached;
             }
         }
+    }
+
+    public async Task ClearCandidateExamState(int candidateId)
+    {
+        await _context.CandidateExamQuestions
+            .Where(candidateQuestion => candidateQuestion.CandidateId == candidateId)
+            .ExecuteDeleteAsync();
+
+        await _context.CandidateAnswers
+            .Where(answer => answer.CandidateId == candidateId)
+            .ExecuteDeleteAsync();
     }
 
     private static bool IsDuplicateCandidateQuestionException(DbUpdateException ex)

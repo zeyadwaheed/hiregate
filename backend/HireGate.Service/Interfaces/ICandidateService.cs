@@ -8,7 +8,7 @@ namespace HireGate.Service.Interfaces
 
 public interface ICandidateService
 {
-    Task<ServiceResult<PagedResult<CandidateResponseDto>>> GetAll(int page, int pageSize, string? search, string? status);
+    Task<ServiceResult<PagedResult<CandidateResponseDto>>> GetAll(int page, int pageSize, string? search, string? status, int? examId);
     Task<ServiceResult<CandidateResponseDto?>> GetById(int id);
 
     Task<ServiceResult<CreateCandidateResponseDto>> CreateCandidate(CreateCandidateDto dto);

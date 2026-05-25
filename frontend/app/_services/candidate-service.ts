@@ -146,6 +146,7 @@ export async function getCandidatesPage(
   page: number,
   search?: string,
   status?: string,
+  examId?: number,
   pageSize?: number,
 ): Promise<CandidatesPaginatedResponse> {
   const params = new URLSearchParams({ page: String(Math.max(1, page)) });
@@ -156,6 +157,8 @@ export async function getCandidatesPage(
 
   const trimmedStatus = status?.trim();
   if (trimmedStatus && trimmedStatus !== "All") params.set("status", trimmedStatus);
+
+  if (examId !== undefined) params.set("examId", String(examId));
 
   const res = await fetch(`${CANDIDATES_URL}?${params}`, { headers: authHeaders() });
   const parsed = await readJsonResponse<unknown>(res, "Failed to fetch candidates");

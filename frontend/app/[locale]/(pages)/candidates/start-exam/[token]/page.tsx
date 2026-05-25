@@ -2,7 +2,7 @@
 
 import { Clock } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { startExam, submitExam } from "@/app/_services/candidate-exam-service";
 import { handleExamError } from "@/app/_utils/exam-error-handler";
@@ -20,6 +20,7 @@ export default function StartExamPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [warning, setWarning] = useState("");
+  const fetchedExamToken = useRef<string | null>(null);
 
   const STORAGE_KEY = `exam_answers_${token}`;
 
@@ -32,6 +33,9 @@ export default function StartExamPage() {
 
   // ---------------- FETCH EXAM ----------------
   useEffect(() => {
+    if (fetchedExamToken.current === token) return;
+    fetchedExamToken.current = token;
+
     const fetchExam = async () => {
       try {
         const res = await startExam(token);
