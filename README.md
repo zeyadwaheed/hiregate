@@ -5,6 +5,42 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 ## Demo
 - **Live demo video:** [HireGate Demo.mp4 - Google Drive](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
 
+## Features
+- Candidate registration, login, and profile management
+- Exam creation, question bank management, and topic organization
+- Submission grading, result tracking, and exam history
+- Admin / HR manager endpoints and dashboard support
+- Reusable frontend components for UI consistency and faster page development
+- Layered architecture with clear separation of concerns
+- Repository pattern for data access and maintainable persistence logic
+
+## Architecture
+- **Layered architecture**: `API` → `Service` → `Repository`
+- **Repository pattern**: repository interfaces and implementations isolate data access from business logic
+- **Reusable frontend components**: shared UI components in `frontend/app/_components` for buttons, cards, forms, tables, and modals
+
+## Getting Started
+
+### Prerequisites
+- .NET SDK 8+ installed
+- Node.js 18+ installed
+- npm or yarn installed
+
+### Backend
+```powershell
+cd backend/HireGate.API
+dotnet restore
+dotnet build
+dotnet run
+```
+
+### Frontend
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
 ## Screenshot Gallery
 
 ### Authentication & Registration
@@ -122,42 +158,6 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 
 #### Paginated Pages
 ![Paginated Pages](./screenshots/12%20-%20Paginated%20Pages%20View.png)
-
-## Features
-- Candidate registration, login, and profile management
-- Exam creation, question bank management, and topic organization
-- Submission grading, result tracking, and exam history
-- Admin / HR manager endpoints and dashboard support
-- Reusable frontend components for UI consistency and faster page development
-- Layered architecture with clear separation of concerns
-- Repository pattern for data access and maintainable persistence logic
-
-## Architecture
-- **Layered architecture**: `API` → `Service` → `Repository` → `Data`
-- **Repository pattern**: repository interfaces and implementations isolate data access from business logic
-- **Reusable frontend components**: shared UI components in `frontend/app/_components` for buttons, cards, forms, tables, and modals
-
-## Getting Started
-
-### Prerequisites
-- .NET SDK 8+ installed
-- Node.js 18+ installed
-- npm or yarn installed
-
-### Backend
-```powershell
-cd backend/HireGate.API
-dotnet restore
-dotnet build
-dotnet run
-```
-
-### Frontend
-```powershell
-cd frontend
-npm install
-npm run dev
-```
 
 ## Project Structure
 - `backend/HireGate.API` - ASP.NET Web API project
