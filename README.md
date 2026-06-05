@@ -6,16 +6,42 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 - **Live demo video:** [HireGate Demo.mp4 - Google Drive](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
 
 ## Screenshot Gallery
-A sample of the app views below. There are 34 screenshots stored in `./screenshots/`.
+All 34 screenshots of the HireGate application:
 
 ![Login Page](./screenshots/Login.png)
 ![Forgot Password](./screenshots/Forgot_Password.png)
 ![Reset Password](./screenshots/Reset_Password.png)
+![Complete Register](./screenshots/1-complete-register-candidate.png)
 ![Create Exam](./screenshots/Create%20Exam.png)
+![Exams Landing Page](./screenshots/1%20-%20Exams%20Landing%20Page.png)
 ![View Exam Page](./screenshots/2%20-%20View%20Exam%20Page.png)
+![Start Exam Candidate](./screenshots/2-start_exam_candidate.png)
+![Exam Candidate](./screenshots/3-exam_candidate.png)
+![View Choices of Questions](./screenshots/3%20-%20View%20choices%20of%20the%20Questions%20of%20the%20Exam.png)
+![Exam Modes](./screenshots/3%20Modes%20of%20exams.png)
 ![Submission Success](./screenshots/4-submitted_succesfully.png)
-![Candidates Overview](./screenshots/1-candidates.png)
-![Question Bank](./screenshots/1-question_bank1.png)
+![Edit Exam Page](./screenshots/9%20-%20Edit%20Exam%20Page.png)
+![Edit Exam Question](./screenshots/10%20-%20Edit%20Exam%20Question%20Part.png)
+![Delete Exam Modal](./screenshots/11%20-%20Delete%20Exam%20Modal.png)
+![Paginated Pages](./screenshots/12%20-%20Paginated%20Pages%20View.png)
+![Candidates 1](./screenshots/1-candidates.png)
+![Candidates 2](./screenshots/2-candidates2.png)
+![Question Bank 1](./screenshots/1-question_bank1.png)
+![Question Bank 2](./screenshots/2-question_bank2.png)
+![Add Question](./screenshots/add%20question%20.png)
+![Add Topic](./screenshots/add_topic.png)
+![Admin Complete Register](./screenshots/Admin_Complete_Register.png)
+![Delete Candidate](./screenshots/delete_candidate.png)
+![Delete Question](./screenshots/delete_question.png)
+![Edit Question 1](./screenshots/edit%20question%201.png)
+![Edit Question 2](./screenshots/edit%20question%202.png)
+![Exam Review for Admin](./screenshots/exam_review_candidate_for_admin_only.png)
+![Picking Questions](./screenshots/picking%20questions%20for%20hybrod%20choice.png)
+![Send Bulk Email](./screenshots/send_bulk_email.png)
+![Send Single Email](./screenshots/send_single_email.png)
+![Random Question Generation](./screenshots/u%20can%20choose%20topics%20and%20number%20of%20questions%20and%20generated%20randomly.png)
+![View Candidate](./screenshots/view_candidate.png)
+![View Question](./screenshots/view_question.png)
 
 ## Features
 - Candidate registration, login, and profile management
