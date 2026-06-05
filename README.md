@@ -30,6 +30,9 @@ All 34 screenshots of the HireGate application:
 #### Create Exam
 ![Create Exam](./screenshots/Create%20Exam.png)
 
+#### Exam Modes
+![Exam Modes](./screenshots/3%20Modes%20of%20exams.png)
+
 #### Edit Exam Page
 ![Edit Exam Page](./screenshots/9%20-%20Edit%20Exam%20Page.png)
 
@@ -64,9 +67,6 @@ All 34 screenshots of the HireGate application:
 
 #### View Choices of Questions
 ![View Choices of Questions](./screenshots/3%20-%20View%20choices%20of%20the%20Questions%20of%20the%20Exam.png)
-
-#### Exam Modes
-![Exam Modes](./screenshots/3%20Modes%20of%20exams.png)
 
 #### Submission Success
 ![Submission Success](./screenshots/4-submitted_succesfully.png)
