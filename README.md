@@ -3,7 +3,7 @@
 A modern recruitment platform for managing candidates, exams, questions, and evaluation workflows.
 
 ## Demo
-- **Live demo video:** [HireGate Demo.mp4 - Google Drive](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
+- **Live demo video:** [HireGate Demo](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
 
 ## Features
 - Candidate registration, login, and profile management
@@ -15,7 +15,7 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 - Repository pattern for data access and maintainable persistence logic
 
 ## Architecture
-- **Layered architecture**: `API` → `Service` → `Repository`
+- **Layered architecture**: `API` → `Service` → `Repository` → `Data`
 - **Repository pattern**: repository interfaces and implementations isolate data access from business logic
 - **Reusable frontend components**: shared UI components in `frontend/app/_components` for buttons, cards, forms, tables, and modals
 
