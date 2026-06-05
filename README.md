@@ -42,9 +42,6 @@ All 34 screenshots of the HireGate application:
 #### Delete Exam Modal
 ![Delete Exam Modal](./screenshots/11%20-%20Delete%20Exam%20Modal.png)
 
-#### Picking Questions
-![Picking Questions](./screenshots/picking%20questions%20for%20hybrod%20choice.png)
-
 #### Random Question Generation
 ![Random Question Generation](./screenshots/u%20can%20choose%20topics%20and%20number%20of%20questions%20and%20generated%20randomly.png)
 
@@ -79,13 +76,16 @@ All 34 screenshots of the HireGate application:
 #### Question Bank 2
 ![Question Bank 2](./screenshots/2-question_bank2.png)
 
+#### Picking Questions
+![Picking Questions](./screenshots/picking%20questions%20for%20hybrod%20choice.png)
+
 #### Add Question
 ![Add Question](./screenshots/add%20question%20.png)
 
-#### Edit Question 1
+#### Edit Question View 1
 ![Edit Question 1](./screenshots/edit%20question%201.png)
 
-#### Edit Question 2
+#### Edit Question View 2
 ![Edit Question 2](./screenshots/edit%20question%202.png)
 
 #### View Question
@@ -99,10 +99,10 @@ All 34 screenshots of the HireGate application:
 
 ### Candidate Management
 
-#### Candidates 1
+#### Candidates View 1
 ![Candidates 1](./screenshots/1-candidates.png)
 
-#### Candidates 2
+#### Candidates View 2
 ![Candidates 2](./screenshots/2-candidates2.png)
 
 #### View Candidate
@@ -134,7 +134,7 @@ All 34 screenshots of the HireGate application:
 - Repository pattern for data access and maintainable persistence logic
 
 ## Architecture
-- **Layered architecture**: `API` → `Service` → `Repository`
+- **Layered architecture**: `API` → `Service` → `Repository` → `Data`
 - **Repository pattern**: repository interfaces and implementations isolate data access from business logic
 - **Reusable frontend components**: shared UI components in `frontend/app/_components` for buttons, cards, forms, tables, and modals
 
