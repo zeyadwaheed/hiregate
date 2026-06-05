@@ -6,7 +6,6 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 - **Live demo video:** [HireGate Demo.mp4 - Google Drive](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
 
 ## Screenshot Gallery
-All 34 screenshots of the HireGate application:
 
 ### Authentication & Registration
 
