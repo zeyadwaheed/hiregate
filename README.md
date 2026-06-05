@@ -5,6 +5,13 @@ A modern recruitment platform for managing candidates, exams, questions, and eva
 ## Demo
 - **Live demo video:** [HireGate Demo](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
 
+## Tech Stack
+
+- **Backend:** ASP.NET Core, C#, Entity Framework Core
+- **Frontend:** Next.js, React
+- **Database:** MySQL
+- **Architecture:** Layered Architecture, Repository Pattern
+
 ## Features
 - Candidate registration, login, and profile management
 - Exam creation, question bank management, and topic organization
@@ -171,13 +178,6 @@ npm run dev
 3. Open the browser at `http://localhost:3000`.
 4. Use the UI to create exams, questions, topics, and candidate submissions.
 
-## Video Demo
-- Demo URL: [HireGate Demo.mp4 - Google Drive](https://drive.google.com/file/d/1xy31gF129iYFJyo-irO9U-6rE8fI8XHU/view)
-
-## Screenshots
-A full screenshot collection is available in the `./screenshots/` folder.
-
-> The gallery above shows a representative selection of the app views. If you want to inspect more, open the `screenshots/` directory in the repository.
 
 ## Running Tests
 ### Backend tests
@@ -194,12 +194,3 @@ dotnet test
 cd backend/HireGate.Service.Tests
 dotnet test
 ```
-
-## Contributing
-Contributions are welcome. Please open issues or merge requests for fixes, improvements, and new features.
-
-## License
-Specify the project license here.
-
-## Notes
-Update the screenshot image paths and demo link before sharing the repository.
