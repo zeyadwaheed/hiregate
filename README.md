@@ -41,7 +41,7 @@ npm install
 npm run dev
 ```
 
-## Screenshot Gallery
+## Screenshots of the Platform
 
 ### Authentication & Registration
 
